@@ -1,6 +1,6 @@
 workspace "PostProcessing"
 	architecture "x64"
-	startproject "PostProcessingEffects"
+	startproject "PostProcessing"
 	 
 	configurations
 	{
@@ -11,6 +11,8 @@ workspace "PostProcessing"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
+IncludeDir["ImGui"]		    = "PostProcessing/External/GUI"
+IncludeDir["ImGuiBackends"] = "PostProcessing/External/GUI/backends"
 IncludeDir["Assimp"]		= "PostProcessing/External/assimp/include"
 IncludeDir["DirectX"]		= "PostProcessing/External/DirectXTK"
 
@@ -18,6 +20,8 @@ IncludeDir["DirectX"]		= "PostProcessing/External/DirectXTK"
 LibDir = {}
 LibDir["assimp"]	= "PostProcessing/External/assimp/lib/xSixtyFour"
 LibDir["DirectXTK"] = "PostProcessing/External/DirectXTK/%{cfg.buildcfg}"
+
+include "PostProcessing/External/GUI"
 
 project "PostProcessing"
 	location "PostProcessing"
@@ -36,6 +40,10 @@ project "PostProcessing"
 	{
 		"%{prj.name}/Src/**.cpp",
 		"%{prj.name}/Src/**.h",
+		"%{prj.name}/External/GUI/backends/imgui_impl_dx11.h",
+		"%{prj.name}/External/GUI/backends/imgui_impl_dx11.cpp",
+		"%{prj.name}/External/GUI/backends/imgui_impl_win32.h",
+		"%{prj.name}/External/GUI/backends/imgui_impl_win32.cpp",
 		"%{prj.name}/Src/Shaders/Common.hlsli"
 
 	}
@@ -45,6 +53,8 @@ project "PostProcessing"
 	{
 		"%{prj.name}/Src",
 		"%{IncludeDir.Assimp}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.ImGuiBackends}",
 		"%{IncludeDir.DirectX}"
 	}
 
@@ -56,6 +66,7 @@ project "PostProcessing"
 
 	links
 	{
+		"ImGui",
 		"d3d11.lib",
 		"assimp-vc142-mt.lib",
 		"DirectXTK.lib",

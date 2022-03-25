@@ -51,6 +51,6 @@ float4 main(PostProcessingInput input) : SV_Target
 
     colour += lerp(gTintColour1, gTintColour2, input.sceneUV.y);
 
-	// Got the RGB from the scene texture, set alpha to 1 for final output
+	//// Got the RGB from the scene texture, set alpha to 1 for final output
 	return float4(colour, 1.0f);
 }

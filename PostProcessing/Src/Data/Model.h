@@ -7,6 +7,7 @@
 #include "Math/CVector3.h"
 #include "Math/CMatrix4x4.h"
 #include "Utility/Input.h"
+#include "Data/State.h"
 
 #include <vector>
 
@@ -27,7 +28,7 @@ public:
 
     // The render function simply passes this model's matrices over to Mesh:Render.
     // All other per-frame constants must have been set already along with shaders, textures, samplers, states etc.
-    void Render();
+    void Render(ID3D11Buffer* buffer, PerModelConstants& ModelConstants);
 
 
 	// Control a given node in the model using keys provided. Amount of motion performed depends on frame time
@@ -74,7 +75,24 @@ public:
 
     void SetWorldMatrix(CMatrix4x4 matrix, int node = 0)  { mWorldMatrices[node] = matrix; }
 
+    //----------------//
+    //    New Code    //
+    //----------------//
 
+    //Set the states that DirectX will use when rendering this model
+    void SetStates(ID3D11BlendState* BlendState, ID3D11DepthStencilState* DepthStencilState, ID3D11RasterizerState* Rasterizerstate);
+
+    //Set the resources that the Pixel shader will need to render this model
+    void SetShaderResources(UINT TextureSlot, ID3D11ShaderResourceView* Texture);
+
+    //Set the resources that the Pixel shader will need to render this model.
+    //Adds a normal map if the model requires one
+    void SetShaderResources(UINT TextureSlot, ID3D11ShaderResourceView* Texture, UINT NormalMapSlot, ID3D11ShaderResourceView* NormalMap);
+
+    //Function overloading for the different scenarios of setting the shaders
+    void Setup(ID3D11VertexShader* VertexShader);
+    void Setup(ID3D11PixelShader* PixelShader);
+    void Setup(ID3D11VertexShader* VertexShader, ID3D11PixelShader* PixelShader);
 	//-------------------------------------
 	// Private data / members
 	//-------------------------------------

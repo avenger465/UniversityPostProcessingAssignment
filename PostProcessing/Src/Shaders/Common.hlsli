@@ -96,10 +96,6 @@ cbuffer PerFrameConstants : register(b0) // The b0 gives this constant buffer th
 }
 // Note constant buffers are not structs: we don't use the name of the constant buffer, these are really just a collection of global variables (hence the 'g')
 
-
-
-static const int MAX_BONES = 64;
-
 // If we have multiple models then we need to update the world matrix from C++ to GPU multiple times per frame because we
 // only have one world matrix here. Because this data is updated more frequently it is kept in a different buffer for better performance.
 // We also keep other data that changes per-model here
@@ -110,8 +106,6 @@ cbuffer PerModelConstants : register(b1) // The b1 gives this constant buffer th
 
     float3   gObjectColour;  // Useed for tinting light models
 	float    gExplodeAmount; // Used in the geometry shader to control how much the polygons are exploded outwards
-
-	float4x4 gBoneMatrices[MAX_BONES];
 }
 
 

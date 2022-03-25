@@ -59,7 +59,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PPE_PLATFORM_WINDOWS;PPE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;External\assimp\include;External\DirectXTK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;External\assimp\include;External\GUI;External\GUI\backends;External\DirectXTK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -80,7 +80,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PPE_PLATFORM_WINDOWS;PPE_Release;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;External\assimp\include;External\DirectXTK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;External\assimp\include;External\GUI;External\GUI\backends;External\DirectXTK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -101,36 +101,48 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Src\Camera.h" />
+    <ClInclude Include="External\GUI\backends\imgui_impl_dx11.h" />
+    <ClInclude Include="External\GUI\backends\imgui_impl_win32.h" />
+    <ClInclude Include="Src\BasicScene\BaseScene.h" />
+    <ClInclude Include="Src\BasicScene\Camera.h" />
+    <ClInclude Include="Src\BasicScene\CLight.h" />
     <ClInclude Include="Src\Data\Mesh.h" />
     <ClInclude Include="Src\Data\Model.h" />
     <ClInclude Include="Src\Data\State.h" />
-    <ClInclude Include="Src\Direct3DSetup.h" />
     <ClInclude Include="Src\Math\CMatrix4x4.h" />
     <ClInclude Include="Src\Math\CVector2.h" />
     <ClInclude Include="Src\Math\CVector3.h" />
     <ClInclude Include="Src\Math\CVector4.h" />
     <ClInclude Include="Src\Math\MathHelpers.h" />
-    <ClInclude Include="Src\Scene.h" />
+    <ClInclude Include="Src\PostProcessingScene\PostProcessingScene.h" />
     <ClInclude Include="Src\Shaders\Shader.h" />
+    <ClInclude Include="Src\System\Direct3DSetup.h" />
+    <ClInclude Include="Src\System\System.h" />
     <ClInclude Include="Src\Utility\ColourRGBA.h" />
+    <ClInclude Include="Src\Utility\CResourceManager.h" />
     <ClInclude Include="Src\Utility\GraphicsHelpers.h" />
     <ClInclude Include="Src\Utility\Input.h" />
     <ClInclude Include="Src\Utility\Timer.h" />
     <ClInclude Include="Src\project\Common.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Camera.cpp" />
+    <ClCompile Include="External\GUI\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="External\GUI\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="Src\BasicScene\BaseScene.cpp" />
+    <ClCompile Include="Src\BasicScene\Camera.cpp" />
+    <ClCompile Include="Src\BasicScene\CLight.cpp" />
     <ClCompile Include="Src\Data\Mesh.cpp" />
     <ClCompile Include="Src\Data\Model.cpp" />
     <ClCompile Include="Src\Data\State.cpp" />
-    <ClCompile Include="Src\Direct3DSetup.cpp" />
     <ClCompile Include="Src\Math\CMatrix4x4.cpp" />
     <ClCompile Include="Src\Math\CVector2.cpp" />
     <ClCompile Include="Src\Math\CVector3.cpp" />
     <ClCompile Include="Src\Math\CVector4.cpp" />
-    <ClCompile Include="Src\Scene.cpp" />
+    <ClCompile Include="Src\PostProcessingScene\PostProcessingScene.cpp" />
     <ClCompile Include="Src\Shaders\Shader.cpp" />
+    <ClCompile Include="Src\System\Direct3DSetup.cpp" />
+    <ClCompile Include="Src\System\System.cpp" />
+    <ClCompile Include="Src\Utility\CResourceManager.cpp" />
     <ClCompile Include="Src\Utility\GraphicsHelpers.cpp" />
     <ClCompile Include="Src\Utility\Input.cpp" />
     <ClCompile Include="Src\Utility\Timer.cpp" />
@@ -196,6 +208,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Shaders\Common.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="External\GUI\ImGui.vcxproj">
+      <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

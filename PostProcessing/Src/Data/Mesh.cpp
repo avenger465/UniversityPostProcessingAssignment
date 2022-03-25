@@ -399,7 +399,7 @@ void Mesh::RenderSubMesh(const SubMesh& subMesh)
 // Render the mesh with the given matrices
 // Handles rigid body meshes (including single part meshes) as well as skinned meshes
 // LIMITATION: The mesh must use a single texture throughout
-void Mesh::Render(std::vector<CMatrix4x4>& modelMatrices)
+void Mesh::Render(std::vector<CMatrix4x4>& modelMatrices, ID3D11Buffer* buffer, PerModelConstants& ModelConstants)
 {
 	// Skinning needs all matrices available in the shader at the same time, so first calculate all the absolute
 	// matrices before rendering anything
@@ -424,19 +424,12 @@ void Mesh::Render(std::vector<CMatrix4x4>& modelMatrices)
 		{
 			absoluteMatrices[nodeIndex] = mNodes[nodeIndex].offsetMatrix * absoluteMatrices[nodeIndex];
 		}
-
-		// Send all matrices over to the GPU for skinning via a constant buffer - each matrix can represent a bone which influences nearby vertices
-		// MISSING - code to fill the gPerModelConstants.boneMatrices array with the contents of the absoluteMatrices vector
-		for (unsigned int nodeIndex = 0; nodeIndex < mNodes.size(); ++nodeIndex)
-		{
-			gPerModelConstants.boneMatrices[nodeIndex] = absoluteMatrices[nodeIndex];
-		}
-		UpdateConstantBuffer(gPerModelConstantBuffer, gPerModelConstants); // Send to GPU
+		UpdateConstantBuffer(buffer, ModelConstants); // Send to GPU
 
 		// Indicate that the constant buffer we just updated is for use in the vertex shader (VS), geometry shader (GS) and pixel shader (PS)
-		gD3DContext->VSSetConstantBuffers(1, 1, &gPerModelConstantBuffer); // First parameter must match constant buffer number in the shader
-		gD3DContext->GSSetConstantBuffers(1, 1, &gPerModelConstantBuffer); // First parameter must match constant buffer number in the shader
-		gD3DContext->PSSetConstantBuffers(1, 1, &gPerModelConstantBuffer);
+		gD3DContext->VSSetConstantBuffers(1, 1, &buffer); // First parameter must match constant buffer number in the shader
+		gD3DContext->GSSetConstantBuffers(1, 1, &buffer); // First parameter must match constant buffer number in the shader
+		gD3DContext->PSSetConstantBuffers(1, 1, &buffer);
 
 		// Already sent over all the absolute matrices for the entire mesh so we can render sub-meshes directly
 		// rather than iterating through the nodes. 
@@ -453,13 +446,13 @@ void Mesh::Render(std::vector<CMatrix4x4>& modelMatrices)
 		for (unsigned int nodeIndex = 0; nodeIndex < mNodes.size(); ++nodeIndex)
 		{
 			// Send this node's matrix to the GPU via a constant buffer
-			gPerModelConstants.worldMatrix = absoluteMatrices[nodeIndex];
-			UpdateConstantBuffer(gPerModelConstantBuffer, gPerModelConstants); // Send to GPU
+			ModelConstants.worldMatrix = absoluteMatrices[nodeIndex];
+			UpdateConstantBuffer(buffer, ModelConstants); // Send to GPU
 
 			// Indicate that the constant buffer we just updated is for use in the vertex shader (VS) and pixel shader (PS)
-			gD3DContext->VSSetConstantBuffers(1, 1, &gPerModelConstantBuffer); // First parameter must match constant buffer number in the shader
-			gD3DContext->GSSetConstantBuffers(1, 1, &gPerModelConstantBuffer);
-			gD3DContext->PSSetConstantBuffers(1, 1, &gPerModelConstantBuffer);
+			gD3DContext->VSSetConstantBuffers(1, 1, &buffer); // First parameter must match constant buffer number in the shader
+			gD3DContext->GSSetConstantBuffers(1, 1, &buffer);
+			gD3DContext->PSSetConstantBuffers(1, 1, &buffer);
 
 			// Render the sub-meshes attached to this node (no bones - rigid movement)
 			for (auto& subMeshIndex : mNodes[nodeIndex].subMeshes)

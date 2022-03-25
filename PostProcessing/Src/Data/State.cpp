@@ -47,7 +47,7 @@ ID3D11DepthStencilState* gNoDepthBufferState  = nullptr;
 //--------------------------------------------------------------------------------------
 
 // Create all the states used in this app, returns true on success
-bool CreateStates()
+bool CreateStates(std::string& LastError)
 {
 	//--------------------------------------------------------------------------------------
 	// Texture Samplers
@@ -68,7 +68,7 @@ bool CreateStates()
 	// Then create a DirectX object for your description that can be used by a shader
 	if (FAILED(gD3DDevice->CreateSamplerState(&samplerDesc, &gPointSampler)))
 	{
-		gLastError = "Error creating point sampler";
+		LastError = "Error creating point sampler";
 		return false;
 	}
 
@@ -86,7 +86,7 @@ bool CreateStates()
 	// Then create a DirectX object for your description that can be used by a shader
 	if (FAILED(gD3DDevice->CreateSamplerState(&samplerDesc, &gTrilinearSampler)))
 	{
-		gLastError = "Error creating point sampler";
+		LastError = "Error creating point sampler";
 		return false;
 	}
 
@@ -104,7 +104,7 @@ bool CreateStates()
 	// Then create a DirectX object for your description that can be used by a shader
 	if (FAILED(gD3DDevice->CreateSamplerState(&samplerDesc, &gAnisotropic4xSampler)))
 	{
-		gLastError = "Error creating anisotropic 4x sampler";
+		LastError = "Error creating anisotropic 4x sampler";
 		return false;
 	}
 
@@ -126,7 +126,7 @@ bool CreateStates()
     // Create a DirectX object for the description above that can be used by a shader
     if (FAILED(gD3DDevice->CreateRasterizerState(&rasterizerDesc, &gCullBackState)))
     {
-        gLastError = "Error creating cull-back state";
+        LastError = "Error creating cull-back state";
         return false;
     }
 
@@ -140,7 +140,7 @@ bool CreateStates()
     // Create a DirectX object for the description above that can be used by a shader
     if (FAILED(gD3DDevice->CreateRasterizerState(&rasterizerDesc, &gCullFrontState)))
     {
-        gLastError = "Error creating cull-front state";
+        LastError = "Error creating cull-front state";
         return false;
     }
 	
@@ -154,7 +154,7 @@ bool CreateStates()
     // Create a DirectX object for the description above that can be used by a shader
     if (FAILED(gD3DDevice->CreateRasterizerState(&rasterizerDesc, &gCullNoneState)))
     {
-        gLastError = "Error creating cull-none state";
+        LastError = "Error creating cull-none state";
         return false;
     }
 	
@@ -166,7 +166,7 @@ bool CreateStates()
     // Create a DirectX object for the description above that can be used by a shader
     if (FAILED(gD3DDevice->CreateRasterizerState(&rasterizerDesc, &gWireframeState)))
     {
-        gLastError = "Error creating cull-none state";
+        LastError = "Error creating cull-none state";
         return false;
     }
 	
@@ -192,7 +192,7 @@ bool CreateStates()
     // Then create a DirectX object for the description that can be used by a shader
     if (FAILED(gD3DDevice->CreateBlendState(&blendDesc, &gNoBlendingState)))
     {
-        gLastError = "Error creating no-blend state";
+        LastError = "Error creating no-blend state";
         return false;
     }
 
@@ -213,7 +213,7 @@ bool CreateStates()
     // Then create a DirectX object for the description that can be used by a shader
     if (FAILED(gD3DDevice->CreateBlendState(&blendDesc, &gAdditiveBlendingState)))
     {
-        gLastError = "Error creating additive blending state";
+        LastError = "Error creating additive blending state";
         return false;
     }
     	
@@ -234,7 +234,7 @@ bool CreateStates()
     // Then create a DirectX object for the description that can be used by a shader
     if (FAILED(gD3DDevice->CreateBlendState(&blendDesc, &gAlphaBlendingState)))
     {
-        gLastError = "Error creating additive blending state";
+        LastError = "Error creating additive blending state";
         return false;
     }
     	
@@ -256,7 +256,7 @@ bool CreateStates()
     // Create a DirectX object for the description above that can be used by a shader
     if (FAILED(gD3DDevice->CreateDepthStencilState(&depthStencilDesc, &gUseDepthBufferState)))
     {
-        gLastError = "Error creating use-depth-buffer state";
+        LastError = "Error creating use-depth-buffer state";
         return false;
     }
 
@@ -271,7 +271,7 @@ bool CreateStates()
     // Create a DirectX object for the description above that can be used by a shader
     if (FAILED(gD3DDevice->CreateDepthStencilState(&depthStencilDesc, &gDepthReadOnlyState)))
     {
-        gLastError = "Error creating depth-read-only state";
+        LastError = "Error creating depth-read-only state";
         return false;
     }
 
@@ -285,7 +285,7 @@ bool CreateStates()
     // Create a DirectX object for the description above that can be used by a shader
     if (FAILED(gD3DDevice->CreateDepthStencilState(&depthStencilDesc, &gNoDepthBufferState)))
     {
-        gLastError = "Error creating no-depth-buffer state";
+        LastError = "Error creating no-depth-buffer state";
         return false;
     }
 

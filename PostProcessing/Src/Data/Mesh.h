@@ -11,6 +11,7 @@
 #include <assimp/scene.h>
 #include <string>
 #include <vector>
+#include "project/Common.h"
 
 #ifndef _MESH_H_INCLUDED_
 #define _MESH_H_INCLUDED_
@@ -40,7 +41,7 @@ public:
 	// Render the mesh with the given matrices
 	// Handles rigid body meshes (including single part meshes) as well as skinned meshes
 	// LIMITATION: The mesh must use a single texture throughout
-	void Render(std::vector<CMatrix4x4>& modelMatrices);
+	void Render(std::vector<CMatrix4x4>& modelMatrices, ID3D11Buffer* buffer, PerModelConstants& ModelConstants);
 
 
 

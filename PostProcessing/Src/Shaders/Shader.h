@@ -40,7 +40,7 @@ extern ID3D11PixelShader*  gHeatHazePostProcess;
 //--------------------------------------------------------------------------------------
 
 // Load shaders required for this app, returns true on success
-bool LoadShaders();
+bool LoadShaders(std::string LastError);
 
 // Release shaders used by the app
 void ReleaseShaders();

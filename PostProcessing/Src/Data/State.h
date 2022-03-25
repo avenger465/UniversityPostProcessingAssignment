@@ -8,7 +8,7 @@
 #ifndef _STATE_H_INCLUDED_
 #define _STATE_H_INCLUDED_
 
-#include <d3d11.h>
+#include "project/Common.h"
 
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -41,7 +41,7 @@ extern ID3D11DepthStencilState* gNoDepthBufferState;
 //--------------------------------------------------------------------------------------
 
 // Create all the states used in this app, returns true on success
-bool CreateStates();
+bool CreateStates(std::string& LastError);
 
 // Release DirectX state objects
 void ReleaseStates();

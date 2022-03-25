@@ -42,7 +42,7 @@ ID3D11PixelShader*  gHeatHazePostProcess   = nullptr;
 //--------------------------------------------------------------------------------------
 
 // Load shaders required for this app, returns true on success
-bool LoadShaders()
+bool LoadShaders(std::string LastError)
 {
 	// Shaders must be added to the Visual Studio project to be compiled, they use the extension ".hlsl".
 	// To load them for use, include them here without the extension. Use the correct function for each.
@@ -73,7 +73,7 @@ bool LoadShaders()
 		gDistortPostProcess         == nullptr || gSpiralPostProcess         == nullptr ||
 		g2DPolygonVertexShader      == nullptr)
 	{
-		gLastError = "Error loading shaders";
+		LastError = "Error loading shaders";
 		return false;
 	}
 

@@ -20,13 +20,6 @@
 // use of globals, but done this way to keep code simpler so the DirectX content is
 // clearer. However, try to architect your own code in a better way.
 
-// Windows variables
-extern HWND gHWnd;
-
-// Viewport size
-extern int gViewportWidth;
-extern int gViewportHeight;
-
 
 // Important DirectX variables
 extern ID3D11Device*           gD3DDevice;
@@ -41,12 +34,6 @@ extern ID3D11ShaderResourceView* gDepthShaderView;        // Allows access to th
 // Input constsnts
 extern const float ROTATION_SPEED;
 extern const float MOVEMENT_SPEED;
-
-
-// A global error message to help track down fatal errors - set it to a useful message
-// when a serious error occurs
-extern std::string gLastError;
-
 
 
 //--------------------------------------------------------------------------------------
@@ -97,11 +84,9 @@ struct PerModelConstants
 
     CVector3   objectColour;  // Allows each light model to be tinted to match the light colour they cast
 	float      explodeAmount; // Used in the geometry shader to control how much the polygons are exploded outwards
-
-	CMatrix4x4 boneMatrices[MAX_BONES];
 };
 extern PerModelConstants gPerModelConstants;      // This variable holds the CPU-side constant buffer described above
-extern ID3D11Buffer*     gPerModelConstantBuffer; // This variable controls the GPU-side constant buffer related to the above structure
+extern ID3D11Buffer*     PerModelConstantBuffer; // This variable controls the GPU-side constant buffer related to the above structure
 
 
 
@@ -146,7 +131,7 @@ struct PostProcessingConstants
 	CVector3 paddingF;
 };
 extern PostProcessingConstants gPostProcessingConstants;      // This variable holds the CPU-side constant buffer described above
-extern ID3D11Buffer*           gPostProcessingConstantBuffer; // This variable controls the GPU-side constant buffer related to the above structure
+extern ID3D11Buffer*           PostProcessingConstantBuffer; // This variable controls the GPU-side constant buffer related to the above structure
 
 //**************************
 
