@@ -429,49 +429,49 @@ void PostProcessingScene::SelectPostProcessShaderAndTextures(PostProcess postPro
 // Perform a full-screen post process from "scene texture" to back buffer
 void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess)
 {
-	if (postProcess == PostProcess::GreyNoise)
-	{
-		gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
-		//gD3DContext->ClearRenderTargetView(m_SecondPassRenderTarget, &gBackgroundColor.r);
+	//if (postProcess == PostProcess::GreyNoise)
+	//{
+	//	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+	//	//gD3DContext->ClearRenderTargetView(m_SecondPassRenderTarget, &gBackgroundColor.r);
 
-		// Give the pixel shader (post-processing shader) access to the scene texture 
-		gD3DContext->PSSetShaderResources(0, 1, &m_SecondPassTextureSRV);
-		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+	//	// Give the pixel shader (post-processing shader) access to the scene texture 
+	//	gD3DContext->PSSetShaderResources(0, 1, &m_SecondPassTextureSRV);
+	//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
-		// Using special vertex shader that creates its own data for a 2D screen quad
-		gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
-		gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
-
-
-		// States - no blending, don't write to depth buffer and ignore back-face culling
-		gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
-		gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
-		gD3DContext->RSSetState(gCullNoneState);
+	//	// Using special vertex shader that creates its own data for a 2D screen quad
+	//	gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
+	//	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
 
 
-		// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
-		gD3DContext->IASetInputLayout(NULL); // No vertex data
-		gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	//	// States - no blending, don't write to depth buffer and ignore back-face culling
+	//	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
+	//	gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
+	//	gD3DContext->RSSetState(gCullNoneState);
 
 
-		// Select shader and textures needed for the required post-processes (helper function above)
-		SelectPostProcessShaderAndTextures(postProcess);
+	//	// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
+	//	gD3DContext->IASetInputLayout(NULL); // No vertex data
+	//	gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 
-		// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
-		gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
-		gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
-		gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
+	//	// Select shader and textures needed for the required post-processes (helper function above)
+	//	SelectPostProcessShaderAndTextures(postProcess);
 
 
-		// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
-		UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
-		gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-		gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+	//	// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
+	//	gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+	//	gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+	//	gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
 
 
-		// Draw a quad
-		gD3DContext->Draw(4, 0);
+	//	// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
+	//	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
+	//	gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+	//	gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+
+
+	//	// Draw a quad
+	//	gD3DContext->Draw(4, 0);
 
 
 		//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
@@ -499,8 +499,6 @@ void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess)
 
 		//// Select shader and textures needed for the required post-processes (helper function above)
 		//SelectPostProcessShaderAndTextures(postProcess);
-
-
 		//// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
 		//gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
 		//gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
@@ -517,7 +515,7 @@ void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess)
 		//gD3DContext->Draw(4, 0);
 
 
-	}
+//	}
 	// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 
@@ -785,6 +783,7 @@ void PostProcessingScene::RenderScene(float frameTime)
 	gPostProcessingConstants.Epsilon = 1e-10;
 	if (CurrentPostProcess != PostProcess::None)
 	{
+
 		if (CurrentPostProcessMode == PostProcessMode::Fullscreen)
 		{
 			FullScreenPostProcess(CurrentPostProcess);
@@ -793,7 +792,7 @@ void PostProcessingScene::RenderScene(float frameTime)
 		else if (CurrentPostProcessMode == PostProcessMode::Area)
 		{
 			// Pass a 3D point for the centre of the affected area and the size of the (rectangular) area in world units
-			AreaPostProcess(CurrentPostProcess, CVector3{gWall1->Position().x, 10,gWall1->Position().z }, { 5, 5 });
+			AreaPostProcess(PostProcess::Gradient, CVector3{gWall1->Position().x, 10,gWall1->Position().z }, { 5, 5 });
 		}
 
 		else if (CurrentPostProcessMode == PostProcessMode::Polygon)
