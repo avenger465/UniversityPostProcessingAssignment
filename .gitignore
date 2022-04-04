@@ -28,6 +28,8 @@ x86/
 bld/
 [Bb]in/
 [Bb]in-int/
+[Bb]in\
+[Bb]in-int\
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
