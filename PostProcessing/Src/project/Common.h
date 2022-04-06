@@ -29,6 +29,7 @@ extern IDXGISwapChain*           gSwapChain;
 extern ID3D11RenderTargetView*   gBackBufferRenderTarget; // Back buffer is where we render to
 extern ID3D11DepthStencilView*   gDepthStencil;           // The depth buffer contains a depth for each back buffer pixel
 extern ID3D11ShaderResourceView* gDepthShaderView;        // Allows access to the depth buffer as a texture for certain specialised shaders
+extern ID3D11DepthStencilView* gDownSampleDepthStencil;
 
 
 // Input constsnts
@@ -98,21 +99,25 @@ struct PostProcessingConstants
 {
 	CVector2 area2DTopLeft; // Top-left of post-process area on screen, provided as coordinate from 0.0->1.0 not as a pixel coordinate
 	CVector2 area2DSize;    // Size of post-process area on screen, provided as sizes from 0.0->1.0 (1 = full screen) not as a size in pixels
-	float    area2DDepth;   // Depth buffer value for area (0.0 nearest to 1.0 furthest). Full screen post-processing uses 0.0f
-	CVector3 paddingA;      // Pad things to collections of 4 floats (see notes in earlier labs to read about padding)
+	
+	float  area2DDepth;   // Depth buffer value for area (0.0 nearest to 1.0 furthest). Full screen post-processing uses 0.0f
+	float  PixelWidth;
+	float  PixelHeight;
+	float  paddingA;
+      // Pad things to collections of 4 floats (see notes in earlier labs to read about padding)
 
 	CVector4 polygon2DPoints[4]; // Four points of a polygon in 2D viewport space for polygon post-processing. Matrix transformations already done on C++ side
 
 	// Tint post-process settings
 	CVector3 tintColour1;
-	float    paddingB;
+	float    FogStart;
 
 	// Grey noise post-process settings
     CVector2 noiseScale;
 	CVector2 noiseOffset;
 
 	// Burn post-process settings
-	float    burnHeight;
+	float    FogEnd;
 	CVector3 tintColour2;
 
 	// Distort post-process settings
@@ -120,15 +125,20 @@ struct PostProcessingConstants
 	CVector3 paddingC;
 
 	// Spiral post-process settings
-	float    spiralLevel;
+	float SaturationLevel;
 	CVector3 paddingD;
 
 	// Heat haze post-process settings
 	float    heatHazeTimer;
 	CVector3 paddingE;
+	
+	float    vignetteStrength;
+	float	 vignetteSize;
+	float	 vignetteFalloff;
+	float    BlurOffset;
 
 	float    Epsilon;
-	CVector3 paddingF;
+	CVector3 paddingG;
 };
 extern PostProcessingConstants gPostProcessingConstants;      // This variable holds the CPU-side constant buffer described above
 extern ID3D11Buffer*           PostProcessingConstantBuffer; // This variable controls the GPU-side constant buffer related to the above structure

@@ -13,14 +13,23 @@
     <Filter Include="Src">
       <UniqueIdentifier>{0D23880B-792C-887C-02A8-9E7C6EB0937C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\BasicScene">
+      <UniqueIdentifier>{CCBDC7D3-B88B-BBD9-A11F-2C008D8C973E}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Src\Data">
       <UniqueIdentifier>{9688E246-8255-3D52-AB6E-2BFA979A72E0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Src\Math">
       <UniqueIdentifier>{0678E746-F244-4252-1B5E-30FA078A77E0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\PostProcessingScene">
+      <UniqueIdentifier>{4DB5C772-B9EC-0F0A-C2F6-732D2EAD3603}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Src\Shaders">
       <UniqueIdentifier>{E6043150-52BA-A945-DBAE-A31C4763A049}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\System">
+      <UniqueIdentifier>{818556AE-6D3D-98FB-D644-7157C21B33EC}</UniqueIdentifier>
     </Filter>
     <Filter Include="Src\Utility">
       <UniqueIdentifier>{509EB806-BC53-31FC-4548-2BD3B1FC2700}</UniqueIdentifier>
@@ -35,6 +44,15 @@
     </ClInclude>
     <ClInclude Include="External\GUI\backends\imgui_impl_win32.h">
       <Filter>External\GUI\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BasicScene\BaseScene.h">
+      <Filter>Src\BasicScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BasicScene\CLight.h">
+      <Filter>Src\BasicScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\BasicScene\Camera.h">
+      <Filter>Src\BasicScene</Filter>
     </ClInclude>
     <ClInclude Include="Src\Data\Mesh.h">
       <Filter>Src\Data</Filter>
@@ -60,8 +78,23 @@
     <ClInclude Include="Src\Math\MathHelpers.h">
       <Filter>Src\Math</Filter>
     </ClInclude>
+    <ClInclude Include="Src\PostProcessingScene\PostProcessingScene.h">
+      <Filter>Src\PostProcessingScene</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Shaders\Shader.h">
       <Filter>Src\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\System\CRenderTexture.h">
+      <Filter>Src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\System\Direct3DSetup.h">
+      <Filter>Src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\System\System.h">
+      <Filter>Src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Utility\CResourceManager.h">
+      <Filter>Src\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Src\Utility\ColourRGBA.h">
       <Filter>Src\Utility</Filter>
@@ -78,13 +111,6 @@
     <ClInclude Include="Src\project\Common.h">
       <Filter>Src\project</Filter>
     </ClInclude>
-    <ClInclude Include="Src\System\Direct3DSetup.h" />
-    <ClInclude Include="Src\System\System.h" />
-    <ClInclude Include="Src\BasicScene\BaseScene.h" />
-    <ClInclude Include="Src\BasicScene\CLight.h" />
-    <ClInclude Include="Src\BasicScene\Camera.h" />
-    <ClInclude Include="Src\PostProcessingScene\PostProcessingScene.h" />
-    <ClInclude Include="Src\Utility\CResourceManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\GUI\backends\imgui_impl_dx11.cpp">
@@ -92,6 +118,15 @@
     </ClCompile>
     <ClCompile Include="External\GUI\backends\imgui_impl_win32.cpp">
       <Filter>External\GUI\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicScene\BaseScene.cpp">
+      <Filter>Src\BasicScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicScene\CLight.cpp">
+      <Filter>Src\BasicScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\BasicScene\Camera.cpp">
+      <Filter>Src\BasicScene</Filter>
     </ClCompile>
     <ClCompile Include="Src\Data\Mesh.cpp">
       <Filter>Src\Data</Filter>
@@ -114,8 +149,23 @@
     <ClCompile Include="Src\Math\CVector4.cpp">
       <Filter>Src\Math</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PostProcessingScene\PostProcessingScene.cpp">
+      <Filter>Src\PostProcessingScene</Filter>
+    </ClCompile>
     <ClCompile Include="Src\Shaders\Shader.cpp">
       <Filter>Src\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\System\CRenderTexture.cpp">
+      <Filter>Src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\System\Direct3DSetup.cpp">
+      <Filter>Src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\System\System.cpp">
+      <Filter>Src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utility\CResourceManager.cpp">
+      <Filter>Src\Utility</Filter>
     </ClCompile>
     <ClCompile Include="Src\Utility\GraphicsHelpers.cpp">
       <Filter>Src\Utility</Filter>
@@ -129,25 +179,18 @@
     <ClCompile Include="Src\project\Main.cpp">
       <Filter>Src\project</Filter>
     </ClCompile>
-    <ClCompile Include="Src\System\Direct3DSetup.cpp" />
-    <ClCompile Include="Src\System\System.cpp" />
-    <ClCompile Include="Src\BasicScene\BaseScene.cpp" />
-    <ClCompile Include="Src\BasicScene\CLight.cpp" />
-    <ClCompile Include="Src\BasicScene\Camera.cpp" />
-    <ClCompile Include="Src\PostProcessingScene\PostProcessingScene.cpp" />
-    <ClCompile Include="Src\Utility\CResourceManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Src\Shaders\2DPolygon_vs.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\2DQuad_vs.hlsl">
+    <FxCompile Include="Src\Shaders\2DQuadwithHorizontalNeighbours_vs.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\2DQuadwithVerticalNeighbours_vs.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\BasicTransform_vs.hlsl">
-      <Filter>Src\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\Burn_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\Copy_ps.hlsl">
@@ -156,10 +199,19 @@
     <FxCompile Include="Src\Shaders\Distort_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Src\Shaders\Fisheye_ps.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Fog_ps.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Fog_vs.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
     <FxCompile Include="Src\Shaders\GreyNoise_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\HeatHaze_ps.hlsl">
+    <FxCompile Include="Src\Shaders\HorizontalBlur_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\PixelLighting_ps.hlsl">
@@ -168,13 +220,25 @@
     <FxCompile Include="Src\Shaders\PixelLighting_vs.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\Spiral_ps.hlsl">
+    <FxCompile Include="Src\Shaders\Pixelation_ps.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Saturation_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\Tint_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\TintedTexture_ps.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Underwater_ps.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\VerticalBlur_ps.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Vignette_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

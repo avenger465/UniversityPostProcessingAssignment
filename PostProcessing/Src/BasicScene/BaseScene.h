@@ -76,6 +76,7 @@ protected:
 	CVector3 gAmbientColour = { 0.3f, 0.3f, 0.4f }; // Background level of light (slightly bluish to match the far background, which is dark blue)
 	float    gSpecularPower = 256; // Specular power controls shininess - same for all models in this app
 	ColourRGBA gBackgroundColor = { 0.3f, 0.3f, 0.4f, 1.0f };
+	ColourRGBA gFogColour = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 	bool lockFPS = true;
 	std::string FPS_String;

@@ -2,48 +2,69 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\bin\Debug-windows-x86_64\PostProcessing\PostProcessing.exe</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\bin\Debug-windows-x86_64\PostProcessing\PostProcessing.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\2DPolygon_vs.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\2DPolygon_vs.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\2DQuad_vs.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\2DQuadwithHorizontalNeighbours_vs.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\BasicTransform_vs.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\2DQuadwithVerticalNeighbours_vs.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Burn_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\BasicTransform_vs.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Copy_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Copy_ps.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Distort_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Distort_ps.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\GreyNoise_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Fisheye_ps.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\HeatHaze_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Fog_ps.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\PixelLighting_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Fog_vs.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\PixelLighting_vs.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\GreyNoise_ps.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Spiral_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\HorizontalBlur_ps.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Tint_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\PixelLighting_ps.cso</FullPath>
     </ContentFile>
     <ContentFile>
-      <FullPath>C:\Users\aveng\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\TintedTexture_ps.cso</FullPath>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\PixelLighting_vs.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Pixelation_ps.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Saturation_ps.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Tint_ps.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\TintedTexture_ps.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Underwater_ps.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\VerticalBlur_ps.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>C:\Users\Games\Documents\GitHub\MathsAndTechAssignment\PostProcessing\Src\Shaders\Vignette_ps.cso</FullPath>
     </ContentFile>
   </ContentFiles>
   <SatelliteDlls />

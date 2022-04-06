@@ -50,11 +50,29 @@ struct SimplePixelShaderInput
 
 // The vertex data received by each post-process shader. Just the 2d projected position (pixel coordinate on screen), 
 // and two sets of UVs - one for accessing the texture showing the scene, one refering to the area being affected (see the 2DQuad_pp.hlsl file for diagram & details)
-struct PostProcessingInput
+struct PostProcessingInputWithNeighbouringPixels
 {
 	float4 projectedPosition     : SV_Position;
 	noperspective float2 sceneUV : sceneUV;      // "noperspective" is needed for polygon processing or the sampling of the scene texture doesn't work correctly (ask tutor if you are interested)
 	float2 areaUV                : areaUV;
+    //float2 tex : TEXCOORD0;
+    float2 texCoord1 : TEXCOORD1;
+    float2 texCoord2 : TEXCOORD2;
+    float2 texCoord3 : TEXCOORD3;
+    float2 texCoord4 : TEXCOORD4;
+    float2 texCoord5 : TEXCOORD5;
+    float2 texCoord6 : TEXCOORD6;
+    float2 texCoord7 : TEXCOORD7;
+    float2 texCoord8 : TEXCOORD8;
+    float2 texCoord9 : TEXCOORD9;
+};
+
+struct PostProcessingInput
+{
+    float4 projectedPosition : SV_Position;
+    noperspective float2 sceneUV : sceneUV;
+    float2 areaUV : areaUV;
+    //float FogFactor : FOG;
 };
 
 //**************************
@@ -118,21 +136,26 @@ cbuffer PostProcessingConstants : register(b1)
 {
 	float2 gArea2DTopLeft; // Top-left of post-process area on screen, provided as coordinate from 0.0->1.0 not as a pixel coordinate
 	float2 gArea2DSize;    // Size of post-process area on screen, provided as sizes from 0.0->1.0 (1 = full screen) not as a size in pixels
-	float  gArea2DDepth;   // Depth buffer value for area (0.0 nearest to 1.0 furthest). Full screen post-processing uses 0.0f
-	float3 paddingA;       // Pad things to collections of 4 floats (see notes in earlier labs to read about padding)
+	
+    float  gArea2DDepth;   // Depth buffer value for area (0.0 nearest to 1.0 furthest). Full screen post-processing uses 0.0f
+	float  gPixelWidth;       // Pad things to collections of 4 floats (see notes in earlier labs to read about padding)
+    float  gPixelHeight;
+    float  paddingA;
 
-  	float4 gPolygon2DPoints[4]; // Four points of a polygon in 2D viewport space for polygon post-processing. Matrix transformations already done on C++ side
 
+    
+  	float4 gPolygon2DPoints[4]; // Four points of a polygon in 2D viewport space for polygon post-processing. Matrix transformations already done on C++ side  
+    
 	// Tint post-process settings
 	float3 gTintColour1;
-	float  paddingB;
+	float  gFogStart;
 
 	// Grey noise post-process settings
     float2 gNoiseScale;
 	float2 gNoiseOffset;
 
 	// Burn post-process settings
-	float  gBurnHeight;
+	float  gFogEnd;
 	float3 gTintColour2;
 
 	// Distort post-process settings
@@ -140,15 +163,22 @@ cbuffer PostProcessingConstants : register(b1)
 	float3 paddingC;
 
 	// Spiral post-process settings
-	float  gSpiralLevel;
-	float3 paddingD;
+	//float4x4 gTransformMatrix;
+    float saturationLevel;
+    float3 paddingD;
+
 
 	// Heat haze post-process settings
 	float  gHeatHazeTimer;
 	float3 paddingE;
+    
+    float gVignetteStrength;
+    float gVignetteSize;
+    float gVignetteFalloff;
+    float gBlurOffset;
 
     float Epsilon;
-    float3 paddingF;
+    float3 paddingG;
 }
 
 //**************************

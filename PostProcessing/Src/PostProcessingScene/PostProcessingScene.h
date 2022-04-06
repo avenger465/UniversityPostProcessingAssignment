@@ -4,6 +4,7 @@
 //--------------------------------------------------------------------------------------
 #pragma once
 #include "BasicScene/BaseScene.h"
+#include "System/CRenderTexture.h"
 #include "System/System.h"
 
 
@@ -51,19 +52,28 @@ private:
 		None,
 		Copy,
 		Gradient,
-		GreyNoise,
-		Burn,
+
+		
+		HorizontalBlur,
+		VerticalBlur,
+
+		Fisheye,
+		Fog,
 		Distort,
-		Spiral,
+		Saturation,
 		Underwater,
+		Pixelation,
+		Vignette,
+		Blur,
 	};
-	PostProcess CurrentPostProcess = PostProcess::None;
+	PostProcess CurrentPostProcess = PostProcess::Copy;
 
 	enum class PostProcessMode
 	{
 		Fullscreen,
 		Area,
 		Polygon,
+		None
 	};
 	PostProcessMode CurrentPostProcessMode = PostProcessMode::Fullscreen;
 
@@ -76,13 +86,13 @@ private:
 	Light Lights[2];
 
 private:
-	void PolygonPostProcess(PostProcess postProcess, std::vector<CVector3>& points, const CMatrix4x4& worldMatrix);
+	void PolygonPostProcess(PostProcess postProcess, std::vector<CVector3>& points, const CMatrix4x4& worldMatrix, Camera* camera, ID3D11ShaderResourceView* renderResource);
 
 	void SelectPostProcessShaderAndTextures(PostProcess postProcess);
 
-	void FullScreenPostProcess(PostProcess postProcess);
+	void FullScreenPostProcess(PostProcess postProcess, ID3D11ShaderResourceView* renderResource);
 
-	void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize);
+	void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize, Camera* camera, ID3D11ShaderResourceView* renderResource);
 
 
 
@@ -101,17 +111,12 @@ private:
 	std::vector<CVector3> CloverWindowPoints = { {-4.5,5,0}, {-4.5,-5,0}, {4.5,5,0}, {4.5,-5,0} };
 	std::vector<CVector3> SquarePoints = { {-5,5,0}, {-5,-5,0}, {5,5,0}, {5,-5,0} };
 
-
-// This texture will have the scene renderered on it. Then the texture is then used for post-processing
-	ID3D11Texture2D*		  m_SceneTexture	  = nullptr;			   // This object represents the memory used by the texture on the GPU
-	ID3D11RenderTargetView*   m_SceneRenderTarget = nullptr; // This object is used when we want to render to the texture above
-	ID3D11ShaderResourceView* m_SceneTextureSRV   = nullptr; // This object is used to give shaders access to the texture above (SRV = shader resource view)
-
-	ID3D11Texture2D*		  m_SecondPassTexture	   = nullptr;
-	ID3D11RenderTargetView*   m_SecondPassRenderTarget = nullptr;
-	ID3D11ShaderResourceView* m_SecondPassTextureSRV   = nullptr;
-
-
+	CRenderTexture *m_Scenetexture;
+	CRenderTexture *m_SecondPasstexture;
+	CRenderTexture *m_DownSampledtexture;
+	CRenderTexture* m_HorizontalBlurTexture;
+	CRenderTexture* m_VerticalBlurTexture;
+	
 	PostProcessingConstants gPostProcessingConstants;
 	ID3D11Buffer* PostProcessingConstantBuffer;
 
@@ -127,6 +132,12 @@ private:
 	CMatrix4x4 SpadeMatrix;
 	CMatrix4x4 DiamondMatrix;
 	CMatrix4x4 CloverMatrix;
+
+	Camera* polyCamera;
+	Camera* HeartCamera;
+	Camera* SpadeCamera;
+	Camera* DiamondCamera;
+	Camera* CloverCamera;
 	//Standard size of the ImGui Button
 	ImVec2 ButtonSize = { 162, 20 };
 
@@ -141,4 +152,22 @@ private:
 	const float LightOrbitRadius = 20.0f;
 	const float LightOrbitSpeed = 0.7f;
 
+	const float rwgt = 0.3086f;
+	const float gwgt = 0.6094f;
+	const float bwgt = 0.0820f;
+
+	CVector3 Colour1 = {0,0,1};
+	CVector3 Colour2 = {0,1,0};
+
+	float saturationLevel = 30.0f;
+	float m_vignetteStrength = 1.3f;
+	float m_vignetteSize = 0.6;
+	float m_vignetteFalloff = 0.25f;
+	bool postProcessing = false;
+	float postProcessingTimer = 0.0f;
+
+	int m_PixelWidth = 64;
+	int m_PixelHeight = 64;
+
+	float m_BlurOffset = 0.005f;
 };

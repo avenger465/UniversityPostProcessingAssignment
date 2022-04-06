@@ -42,16 +42,25 @@ PostProcessingScene::PostProcessingScene(int width, int height)
 	m_ViewportHeight = height;
 	resourceManager = new CResourceManager();
 	MainCamera = new Camera();
+	SpadeCamera = new Camera();
 
 	windowFlags |= ImGuiWindowFlags_NoScrollbar;
 	windowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
 	windowFlags |= ImGuiWindowFlags_NoMove;
+
+	m_Scenetexture = 0;
+	m_SecondPasstexture = 0;
+	m_DownSampledtexture = 0;
+	m_HorizontalBlurTexture = 0;
+	m_VerticalBlurTexture = 0;
+
 }
 
 // Prepare the geometry required for the scene
 // Returns true on success
 bool PostProcessingScene::InitGeometry(std::string& LastError)
 {
+	bool result;
 	////--------------- Load meshes ---------------////
 
 	// Load mesh geometry data, just like TL-Engine this doesn't create anything in the scene. Create a Model for that.
@@ -129,64 +138,48 @@ bool PostProcessingScene::InitGeometry(std::string& LastError)
 	// We will render the scene to this texture instead of the back-buffer (screen), then we post-process the texture onto the screen
 	// This is exactly the same code we used in the graphics module when we were rendering the scene onto a cube using a texture
 
-	// Using a helper function to load textures from files above. Here we create the scene texture manually
-	// as we are creating a special kind of texture (one that we can render to). Many settings to prepare:
-	D3D11_TEXTURE2D_DESC sceneTextureDesc = {};
-	sceneTextureDesc.Width = m_ViewportWidth;  // Full-screen post-processing - use full screen size for texture
-	sceneTextureDesc.Height = m_ViewportHeight;
-	sceneTextureDesc.MipLevels = 1; // No mip-maps when rendering to textures (or we would have to render every level)
-	sceneTextureDesc.ArraySize = 1;
-	sceneTextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // RGBA texture (8-bits each)
-	sceneTextureDesc.SampleDesc.Count = 1;
-	sceneTextureDesc.SampleDesc.Quality = 0;
-	sceneTextureDesc.Usage = D3D11_USAGE_DEFAULT;
-	sceneTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; // IMPORTANT: Indicate we will use texture as render target, and pass it to shaders
-	sceneTextureDesc.CPUAccessFlags = 0;
-	sceneTextureDesc.MiscFlags = 0;
-	if (FAILED(gD3DDevice->CreateTexture2D(&sceneTextureDesc, NULL, &m_SceneTexture)))
+	m_DownSampledtexture = new CRenderTexture;
+	if (!m_DownSampledtexture) return false;
+	result = m_DownSampledtexture->Initialize(gD3DDevice, m_ViewportWidth / 3, m_ViewportHeight / 3);
+	if (!result)
 	{
-		LastError = "Error creating scene texture";
-		return false;
-	}
-	sceneTextureDesc.Width = 634;
-	sceneTextureDesc.Height = 480;
-	if (FAILED(gD3DDevice->CreateTexture2D(&sceneTextureDesc, NULL, &m_SecondPassTexture)))
-	{
-		LastError = "Error creating scene texture";
+		LastError = "Error creating DownSampled Texture";
 		return false;
 	}
 
-	// We created the scene texture above, now we get a "view" of it as a render target, i.e. get a special pointer to the texture that
-	// we use when rendering to it (see RenderScene function below)
-	if (FAILED(gD3DDevice->CreateRenderTargetView(m_SceneTexture, NULL, &m_SceneRenderTarget)))
+	m_Scenetexture = new CRenderTexture;
+	if (!m_Scenetexture) return false;
+	result = m_Scenetexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
+	if (!result)
 	{
-		LastError = "Error creating scene render target view";
-		return false;
-	}
-	if (FAILED(gD3DDevice->CreateRenderTargetView(m_SceneTexture, NULL, &m_SecondPassRenderTarget)))
-	{
-		LastError = "Error creating scene render target view";
+		LastError = "Error creating Scene Texture";
 		return false;
 	}
 
-	// We also need to send this texture (resource) to the shaders. To do that we must create a shader-resource "view"
-	D3D11_SHADER_RESOURCE_VIEW_DESC srDesc = {};
-	srDesc.Format = sceneTextureDesc.Format;
-	srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srDesc.Texture2D.MostDetailedMip = 0;
-	srDesc.Texture2D.MipLevels = 1;
-	if (FAILED(gD3DDevice->CreateShaderResourceView(m_SceneTexture, &srDesc, &m_SceneTextureSRV)))
+	m_SecondPasstexture = new CRenderTexture;
+	if (!m_SecondPasstexture) return false;
+	result = m_SecondPasstexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
+	if (!result)
 	{
-		LastError = "Error creating scene shader resource view";
+		LastError = "Error creating SecondPass Texture";
 		return false;
 	}
-	if (FAILED(gD3DDevice->CreateShaderResourceView(m_SceneTexture, &srDesc, &m_SecondPassTextureSRV)))
+	m_HorizontalBlurTexture = new CRenderTexture;
+	if (!m_HorizontalBlurTexture) return false;
+	result = m_HorizontalBlurTexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
+	if (!result)
 	{
-		LastError = "Error creating scene shader resource view";
+		LastError = "Error creating Horizontal blur texture";
 		return false;
 	}
-
-
+	m_VerticalBlurTexture = new CRenderTexture;
+	if (!m_VerticalBlurTexture) return false;
+	result = m_VerticalBlurTexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
+	if (!result)
+	{
+		LastError = "Error creating Vertical blur texture";
+		return false;
+	}
 
 	// Create all filtering modes, blending modes etc. used by the app (see State.cpp/.h)
 	if (!CreateStates(LastError))
@@ -260,6 +253,22 @@ bool PostProcessingScene::InitScene()
 
 	MainCamera->SetPosition({ 25, 18, -45 });
 	MainCamera->SetRotation({ ToRadians(10.0f), ToRadians(7.0f), 0.0f });
+	
+	
+	//polyCamera->SetPosition(PolyCameraPosition);
+	//polyCamera->SetRotation({ToRadians(90), 0.0f, 0.0f});
+	//HeartCamera->Position() = (HeartWindowPoints[0] + CVector3(4.5f, -5, 0));
+	//HeartCamera->SetPosition(HeartWindowPoints[0] + CVector3(4.5f, -5, 0));
+	SpadeCamera->SetPosition({ gWall2->Position().x - 18, 10, gWall2->Position().z - 15 });
+	//DiamondCamera->SetPosition({});
+	//CloverCamera->SetPosition({});
+	
+
+	gPostProcessingConstants.tintColour1 = Colour1;
+	gPostProcessingConstants.tintColour2 = Colour2;
+
+	gPostProcessingConstants.FogStart = 0.0f;
+	gPostProcessingConstants.FogEnd = 10.0f;
 
 	return true;
 }
@@ -270,9 +279,9 @@ void PostProcessingScene::ReleaseResources()
 {
 	ReleaseStates();
 
-	if (m_SceneTextureSRV)              m_SceneTextureSRV->Release();
-	if (m_SceneRenderTarget)            m_SceneRenderTarget->Release();
-	if (m_SceneTexture)                 m_SceneTexture->Release();
+	//if (m_SceneTextureSRV)              m_SceneTextureSRV->Release();
+	//if (m_SceneRenderTarget)            m_SceneRenderTarget->Release();
+	//if (m_SceneTexture)                 m_SceneTexture->Release();
 
 	if (PostProcessingConstantBuffer)  PostProcessingConstantBuffer->Release();
 	if (PerModelConstantBuffer)        PerModelConstantBuffer->Release();
@@ -384,25 +393,12 @@ void PostProcessingScene::SelectPostProcessShaderAndTextures(PostProcess postPro
 	{
 		gD3DContext->PSSetShader(gTintPostProcess, nullptr, 0);
 	}
-
-	else if (postProcess == PostProcess::GreyNoise)
+	else if (postProcess == PostProcess::Fog)
 	{
-		gD3DContext->PSSetShader(gGreyNoisePostProcess, nullptr, 0);
-
-		// Give pixel shader access to the noise texture
-		ID3D11ShaderResourceView* temp = resourceManager->getTexture(L"NoiseMap");
-		gD3DContext->PSSetShaderResources(1, 1, &temp);
-		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
-	}
-
-	else if (postProcess == PostProcess::Burn)
-	{
-		gD3DContext->PSSetShader(gBurnPostProcess, nullptr, 0);
-
-		// Give pixel shader access to the burn texture (basically a height map that the burn level ascends)
-		ID3D11ShaderResourceView* temp = resourceManager->getTexture(L"BurnMap");
-		gD3DContext->PSSetShaderResources(1, 1, &temp);
-		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
+		
+		gD3DContext->VSSetShader(gFogVertexShader, nullptr, 0);
+		gD3DContext->PSSetShader(gFogPixelShader, nullptr, 0);
+		
 	}
 
 	else if (postProcess == PostProcess::Distort)
@@ -414,159 +410,175 @@ void PostProcessingScene::SelectPostProcessShaderAndTextures(PostProcess postPro
 		gD3DContext->PSSetShaderResources(1, 1, &temp);
 		gD3DContext->PSSetSamplers(1, 1, &gTrilinearSampler);
 	}
-
-	else if (postProcess == PostProcess::Spiral)
+	else if (postProcess == PostProcess::Fisheye)
 	{
-		gD3DContext->PSSetShader(gSpiralPostProcess, nullptr, 0);
+		//gD3DContext->VSSetShader(gFogVertexShader, nullptr, 0);
+		gD3DContext->PSSetShader(gFishEyeShader, nullptr, 0);
+	}
+
+	else if (postProcess == PostProcess::Saturation)
+	{
+		gD3DContext->PSSetShader(gSaturationPostProcess, nullptr, 0);
 	}
 
 	else if (postProcess == PostProcess::Underwater)
 	{
-		gD3DContext->PSSetShader(gHeatHazePostProcess, nullptr, 0);
+		gD3DContext->PSSetShader(gUnderWaterPostProcess, nullptr, 0);
+	}
+	else if (postProcess == PostProcess::Pixelation)
+	{
+		gD3DContext->PSSetShader(gPixelationPostProcess, nullptr, 0);
+	}
+	else if (postProcess == PostProcess::Vignette)
+	{
+		gD3DContext->PSSetShader(gVignettePostProcess, nullptr, 0);
+	}
+	else if (postProcess == PostProcess::Blur)
+	{
+		gD3DContext->PSSetShader(gHorizontalBlurPostProcess, nullptr, 0);
+	}
+	else
+	{
+		gD3DContext->PSSetShader(gCopyPostProcess, nullptr, 0);
 	}
 }
 
 // Perform a full-screen post process from "scene texture" to back buffer
-void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess)
+void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess, ID3D11ShaderResourceView* renderResource)
 {
-	//if (postProcess == PostProcess::GreyNoise)
-	//{
-	//	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
-	//	//gD3DContext->ClearRenderTargetView(m_SecondPassRenderTarget, &gBackgroundColor.r);
-
-	//	// Give the pixel shader (post-processing shader) access to the scene texture 
-	//	gD3DContext->PSSetShaderResources(0, 1, &m_SecondPassTextureSRV);
-	//	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-
-	//	// Using special vertex shader that creates its own data for a 2D screen quad
-	//	gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
-	//	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
-
-
-	//	// States - no blending, don't write to depth buffer and ignore back-face culling
-	//	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
-	//	gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
-	//	gD3DContext->RSSetState(gCullNoneState);
-
-
-	//	// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
-	//	gD3DContext->IASetInputLayout(NULL); // No vertex data
-	//	gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-
-	//	// Select shader and textures needed for the required post-processes (helper function above)
-	//	SelectPostProcessShaderAndTextures(postProcess);
-
-
-	//	// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
-	//	gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
-	//	gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
-	//	gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
-
-
-	//	// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
-	//	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
-	//	gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-	//	gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-
-
-	//	// Draw a quad
-	//	gD3DContext->Draw(4, 0);
-
-
-		//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
-		//gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &gBackgroundColor.r);
-
-		//// Give the pixel shader (post-processing shader) access to the scene texture 
-		//gD3DContext->PSSetShaderResources(0, 1, &m_SecondPassTextureSRV);
-		//gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-
-		//// Using special vertex shader that creates its own data for a 2D screen quad
-		//gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
-		//gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
-
-
-		//// States - no blending, don't write to depth buffer and ignore back-face culling
-		//gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
-		//gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
-		//gD3DContext->RSSetState(gCullNoneState);
-
-
-		//// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
-		//gD3DContext->IASetInputLayout(NULL); // No vertex data
-		//gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-
-		//// Select shader and textures needed for the required post-processes (helper function above)
-		//SelectPostProcessShaderAndTextures(postProcess);
-		//// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
-		//gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
-		//gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
-		//gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
-
-
-		//// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
-		//UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
-		//gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-		//gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-
-
-		//// Draw a quad
-		//gD3DContext->Draw(4, 0);
-
-
-//	}
 	// Select the back buffer to use for rendering. Not going to clear the back-buffer because we're going to overwrite it all
-	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+	if (postProcess == PostProcess::Blur)
+	{	
+		m_DownSampledtexture->SetRenderTarget(gD3DContext);
+		//m_DownSampledtexture->ClearRenderTarget(gD3DContext, gBackgroundColor.r, gBackgroundColor.g, gBackgroundColor.b, gBackgroundColor.a);
+		//gD3DContext->OMSetRenderTargets(1, &m_DownSampledtexture., gDownSampleDepthStencil);
+		
+		//gD3DContext->ClearRenderTargetView(m_DownSampledRenderTarget, &gBackgroundColor.r);
 
-	
-	// Give the pixel shader (post-processing shader) access to the scene texture 
-	gD3DContext->PSSetShaderResources(0, 1, &m_SceneTextureSRV);
-	gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
-
-
-	// Using special vertex shader that creates its own data for a 2D screen quad
-	gD3DContext->VSSetShader(g2DQuadVertexShader, nullptr, 0);
-	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
-
-
-	// States - no blending, don't write to depth buffer and ignore back-face culling
-	gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
-	gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
-	gD3DContext->RSSetState(gCullNoneState);
+		// Give the pixel shader (post-processing shader) access to the scene texture 
+		gD3DContext->PSSetShaderResources(0, 1, &renderResource);
+		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
 
 
-	// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
-	gD3DContext->IASetInputLayout(NULL); // No vertex data
-	gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		// Using special vertex shader that creates its own data for a 2D screen quad
+		gD3DContext->VSSetShader(gFogVertexShader, nullptr, 0);
+		gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
 
 
-	// Select shader and textures needed for the required post-processes (helper function above)
-	SelectPostProcessShaderAndTextures(postProcess);
+		// States - no blending, don't write to depth buffer and ignore back-face culling
+		gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
+		gD3DContext->OMSetDepthStencilState(gNoDepthBufferState, 0);
+		gD3DContext->RSSetState(gCullNoneState);
 
 
-	// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
-	gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
-	gPostProcessingConstants.area2DSize    = { 1, 1 }; // Full size of screen
-	gPostProcessingConstants.area2DDepth   = 0;        // Depth buffer value for full screen is as close as possible
+		// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
+		gD3DContext->IASetInputLayout(NULL); // No vertex data
+		gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 
-	// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
-	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
-	gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-	gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+		// Select shader and textures needed for the required post-processes (helper function above)
+		SelectPostProcessShaderAndTextures(postProcess);
 
 
-	// Draw a quad
-	gD3DContext->Draw(4, 0);
+		// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
+		gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+		gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+		gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
+
+
+		// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
+		UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
+		gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+		gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+
+		gD3DContext->Draw(4, 0);
+
+		m_HorizontalBlurTexture->SetRenderTarget(gD3DContext);
+		gD3DContext->PSSetShader(gHorizontalBlurPostProcess, nullptr, 0);
+		//m_HorizontalBlurTexture->ClearRenderTarget(gD3DContext, gBackgroundColor.r, gBackgroundColor.g, gBackgroundColor.b, gBackgroundColor.a);
+
+		ID3D11ShaderResourceView* temp = m_DownSampledtexture->GetShaderResourceView();
+		gD3DContext->PSSetShaderResources(0, 1, &temp);
+		
+		
+		gD3DContext->Draw(4, 0);
+
+
+		m_VerticalBlurTexture->SetRenderTarget(gD3DContext);
+		//m_VerticalBlurTexture->ClearRenderTarget(gD3DContext, gBackgroundColor.r, gBackgroundColor.g, gBackgroundColor.b, gBackgroundColor.a);
+		
+		gD3DContext->PSSetShader(gGreyNoisePostProcess, nullptr, 0);
+
+		temp = m_HorizontalBlurTexture->GetShaderResourceView();
+		gD3DContext->PSSetShaderResources(0, 1, &temp);
+
+		gD3DContext->Draw(4, 0);
+		
+		gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+		temp = m_VerticalBlurTexture->GetShaderResourceView();
+		gD3DContext->PSSetShaderResources(0, 1, &temp);
+		
+		gD3DContext->Draw(4, 0);
+		
+	}
+	else
+	{
+		gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+		//gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &gFogColour.r);
+
+
+		// Give the pixel shader (post-processing shader) access to the scene texture 
+		gD3DContext->PSSetShaderResources(0, 1, &renderResource);
+		gD3DContext->PSSetSamplers(0, 1, &gPointSampler); // Use point sampling (no bilinear, trilinear, mip-mapping etc. for most post-processes)
+
+
+		// Using special vertex shader that creates its own data for a 2D screen quad
+		gD3DContext->VSSetShader(g2DQuadWithHorizontalNeighboursVertexShader, nullptr, 0);
+		gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
+
+
+		// States - no blending, don't write to depth buffer and ignore back-face culling
+		gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);
+		gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
+		gD3DContext->RSSetState(gCullNoneState);
+
+
+		// No need to set vertex/index buffer (see 2D quad vertex shader), just indicate that the quad will be created as a triangle strip
+		gD3DContext->IASetInputLayout(NULL); // No vertex data
+		gD3DContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+
+		// Select shader and textures needed for the required post-processes (helper function above)
+		SelectPostProcessShaderAndTextures(postProcess);
+
+
+		// Set 2D area for full-screen post-processing (coordinates in 0->1 range)
+		gPostProcessingConstants.area2DTopLeft = { 0, 0 }; // Top-left of entire screen
+		gPostProcessingConstants.area2DSize = { 1, 1 }; // Full size of screen
+		gPostProcessingConstants.area2DDepth = 0;        // Depth buffer value for full screen is as close as possible
+
+
+		// Pass over the above post-processing settings (also the per-process settings prepared in UpdateScene function below)
+		UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
+		gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+		gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+
+
+		// Draw a quad
+		gD3DContext->Draw(4, 0);
+	}
+
+	// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
+	/*ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);*/
 }
 
 
 // Perform an area post process from "scene texture" to back buffer at a given point in the world, with a given size (world units)
-void PostProcessingScene::AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize)
+void PostProcessingScene::AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize, Camera* camera, ID3D11ShaderResourceView* renderResource)
 {
 	// First perform a full-screen copy of the scene to back-buffer
-	FullScreenPostProcess(PostProcess::Copy);
+	FullScreenPostProcess(PostProcess::Copy, renderResource);
 	
 
 	// Now perform a post-process of a portion of the scene to the back-buffer (overwriting some of the copy above)
@@ -627,47 +639,44 @@ void PostProcessingScene::AreaPostProcess(PostProcess postProcess, CVector3 worl
 	// Draw a quad
 	gD3DContext->Draw(4, 0);
 
+	// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
+	/*ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);*/
+
 }
 
 
 // Perform an post process from "scene texture" to back buffer within the given four-point polygon and a world matrix to position/rotate/scale the polygon
-void PostProcessingScene::PolygonPostProcess(PostProcess postProcess, std::vector<CVector3>& points, const CMatrix4x4& worldMatrix)
+void PostProcessingScene::PolygonPostProcess(PostProcess postProcess, std::vector<CVector3>& points, const CMatrix4x4& worldMatrix, Camera* camera, ID3D11ShaderResourceView* renderResource)
 {
 	// First perform a full-screen copy of the scene to back-buffer
-	FullScreenPostProcess(PostProcess::Copy);
+	FullScreenPostProcess(PostProcess::Copy, renderResource);
 
-
-	// Now perform a post-process of a portion of the scene to the back-buffer (overwriting some of the copy above)
-	// Note: The following code relies on many of the settings that were prepared in the FullScreenPostProcess call above, it only
-	//       updates a few things that need to be changed for an area process. If you tinker with the code structure you need to be
-	//       aware of all the work that the above function did that was also preparation for this post-process area step
+	gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+	gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
+	// Select the special 2D polygon post-processing vertex shader and draw the polygon
+	gD3DContext->VSSetShader(g2DPolygonVertexShader, nullptr, 0);
 
 	// Select shader/textures needed for required post-process
 	SelectPostProcessShaderAndTextures(postProcess);
 
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
-	for (unsigned int i = 0; i < points.size(); ++i)
+	for (unsigned int i = 0; i < SpadeWindowPoints.size(); ++i)
 	{
-		CVector4 modelPosition = CVector4(points[i], 1);
-		CVector4 worldPosition = modelPosition * worldMatrix;
+		CVector4 modelPosition = CVector4(SpadeWindowPoints[i], 1);
+		CVector4 worldPosition = modelPosition * SpadeMatrix;
 		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
 	}
 
 	// Pass over the polygon points to the shaders (also sends the per-process settings prepared in UpdateScene function below)
+	//PerFrameConstants.cameraPosition = SpadeCamera->Position();
 	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
-	gD3DContext->VSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-	gD3DContext->PSSetConstantBuffers(1, 1, &PostProcessingConstantBuffer);
-
-	//gD3DContext->RSSetState(wireframe ? gWireframeState : gCullBackState);
-
-	// Select the special 2D polygon post-processing vertex shader and draw the polygon
-	gD3DContext->VSSetShader(g2DPolygonVertexShader, nullptr, 0);
 	gD3DContext->Draw(4, 0);
 
 
-
+	SelectPostProcessShaderAndTextures(PostProcess::Pixelation);
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
 	for (unsigned int i = 0; i < HeartWindowPoints.size(); ++i)
 	{
@@ -679,19 +688,8 @@ void PostProcessingScene::PolygonPostProcess(PostProcess postProcess, std::vecto
 	}
 	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
 	gD3DContext->Draw(4, 0);
-
-
-	for (unsigned int i = 0; i < SpadeWindowPoints.size(); ++i)
-	{
-		CVector4 modelPosition = CVector4(SpadeWindowPoints[i], 1);
-		CVector4 worldPosition = modelPosition * SpadeMatrix;
-		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
-
-		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
-	}
-	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
-	gD3DContext->Draw(4, 0);
-
+	//
+	SelectPostProcessShaderAndTextures(PostProcess::Vignette);
 	for (unsigned int i = 0; i < DiamondWindowPoints.size(); ++i)
 	{
 		CVector4 modelPosition = CVector4(DiamondWindowPoints[i], 1);
@@ -703,16 +701,36 @@ void PostProcessingScene::PolygonPostProcess(PostProcess postProcess, std::vecto
 	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
 	gD3DContext->Draw(4, 0);
 
+
+	SelectPostProcessShaderAndTextures(PostProcess::Distort);
 	for (unsigned int i = 0; i < CloverWindowPoints.size(); ++i)
 	{
 		CVector4 modelPosition = CVector4(CloverWindowPoints[i], 1);
 		CVector4 worldPosition = modelPosition * CloverMatrix;
+		/*SpadeCamera->SetPosition({ worldPosition.x + 4.5f, worldPosition.y - 5, worldPosition.z });*/
 		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
 	}
 	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
 	gD3DContext->Draw(4, 0);
+
+	
+	SelectPostProcessShaderAndTextures(PostProcess::Fisheye);
+	for (unsigned int i = 0; i < SquarePoints.size(); ++i)
+	{
+		CVector4 modelPosition = CVector4(SquarePoints[i], 1);
+		CVector4 worldPosition = modelPosition * polyMatrix;
+		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
+
+		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
+	}
+	UpdateConstantBuffer(PostProcessingConstantBuffer, gPostProcessingConstants);
+	gD3DContext->Draw(4, 0);
+	// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
+	/*ID3D11ShaderResourceView* nullSRV = nullptr;
+	gD3DContext->PSSetShaderResources(0, 1, &nullSRV);*/
+
 
 }
 
@@ -746,15 +764,22 @@ void PostProcessingScene::RenderScene(float frameTime)
 	// Set the target for rendering and select the main depth buffer.
 	// If using post-processing then render to the scene texture, otherwise to the usual back buffer
 	// Also clear the render target to a fixed colour and the depth buffer to the far distance
-	if (CurrentPostProcess == PostProcess::GreyNoise)
+	/*if (CurrentPostProcess == PostProcess::GreyNoise)
 	{
 		gD3DContext->OMSetRenderTargets(1, &m_SecondPassRenderTarget, gDepthStencil);
 		gD3DContext->ClearRenderTargetView(m_SecondPassRenderTarget, &gBackgroundColor.r);
-	}
-	else if (CurrentPostProcess != PostProcess::None)
+	}*/
+
+
+	//// Portal scene rendering ////
+	D3D11_VIEWPORT vp;
+	// Set the portal texture and portal depth buffer as the targets for rendering
+	// The portal texture will later be used on models in the main scene
+	
+	if (CurrentPostProcess != PostProcess::None)
 	{
-		gD3DContext->OMSetRenderTargets(1, &m_SceneRenderTarget, gDepthStencil);
-		gD3DContext->ClearRenderTargetView(m_SceneRenderTarget, &gBackgroundColor.r);
+		m_Scenetexture->SetRenderTarget(gD3DContext);
+		m_Scenetexture->ClearRenderTarget(gD3DContext, gBackgroundColor.r, gBackgroundColor.g, gBackgroundColor.b, gBackgroundColor.a);	
 	}
 	else
 	{
@@ -764,7 +789,6 @@ void PostProcessingScene::RenderScene(float frameTime)
 	gD3DContext->ClearDepthStencilView(gDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Setup the viewport to the size of the main window
-	D3D11_VIEWPORT vp;
 	vp.Width = static_cast<FLOAT>(m_ViewportWidth);
 	vp.Height = static_cast<FLOAT>(m_ViewportHeight);
 	vp.MinDepth = 0.0f;
@@ -776,41 +800,49 @@ void PostProcessingScene::RenderScene(float frameTime)
 	// Render the scene from the main camera
 	RenderSceneFromCamera(MainCamera);
 
+
 	////--------------- Scene completion ---------------////
 
 	// Run any post-processing steps
 
 	gPostProcessingConstants.Epsilon = 1e-10;
+
 	if (CurrentPostProcess != PostProcess::None)
 	{
-
 		if (CurrentPostProcessMode == PostProcessMode::Fullscreen)
 		{
-			FullScreenPostProcess(CurrentPostProcess);
+			FullScreenPostProcess(CurrentPostProcess, m_Scenetexture->GetShaderResourceView());
 		}
 
 		else if (CurrentPostProcessMode == PostProcessMode::Area)
 		{
 			// Pass a 3D point for the centre of the affected area and the size of the (rectangular) area in world units
-			AreaPostProcess(PostProcess::Gradient, CVector3{gWall1->Position().x, 10,gWall1->Position().z }, { 5, 5 });
+			AreaPostProcess(CurrentPostProcess, CVector3{gWall1->Position().x, 10,gWall1->Position().z }, { 5, 5 }, SpadeCamera, m_Scenetexture->GetShaderResourceView());
 		}
 
 		else if (CurrentPostProcessMode == PostProcessMode::Polygon)
-		{
+		{		
 			// Pass an array of 4 points and a matrix. Only supports 4 points.
-			PolygonPostProcess(CurrentPostProcess, SquarePoints, polyMatrix);
+			PolygonPostProcess(PostProcess::Saturation, SpadeWindowPoints, SpadeMatrix, SpadeCamera, m_Scenetexture->GetShaderResourceView());
+		}
+		else
+		{
+			
+//			PolygonPostProcess(PostProcess::Gradient, CloverWindowPoints, CloverMatrix, MainCamera, m_SceneTextureSRV);
 		}
 
-
+		
 		// These lines unbind the scene texture from the pixel shader to stop DirectX issuing a warning when we try to render to it again next frame
 		ID3D11ShaderResourceView* nullSRV = nullptr;
 		gD3DContext->PSSetShaderResources(0, 1, &nullSRV);
 
 	}
+	//FullScreenPostProcess(PostProcess::Copy, m_SecondPassTextureSRV, gBackBufferRenderTarget);
+	/*gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
+	gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &gBackgroundColor.r);*/
+	
 	IMGUI();
 	ImGui::Render();
-	//gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, nullptr);
-	//if (CurrentPostProcess != PostProcess::None) gD3DContext->OMSetRenderTargets(1, &m_SceneRenderTarget, gDepthStencil);
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -836,22 +868,27 @@ void PostProcessingScene::UpdateScene(float frameTime, HWND HWnd)
 	if (KeyHit(Key_F3))  CurrentPostProcessMode = PostProcessMode::Polygon;
 
 	if (KeyHit(Key_1))   CurrentPostProcess = PostProcess::Gradient;
-	if (KeyHit(Key_2))   CurrentPostProcess = PostProcess::GreyNoise;
-	//if (KeyHit(Key_6))   CurrentPostProcess = PostProcess::Burn;
-	//if (KeyHit(Key_4))   CurrentPostProcess = PostProcess::Distort;
-	//if (KeyHit(Key_5))   CurrentPostProcess = PostProcess::Spiral;
+	if (KeyHit(Key_2))   CurrentPostProcess = PostProcess::Blur;
+	if (KeyHit(Key_6))   CurrentPostProcess = PostProcess::Pixelation;
+	//if (KeyHit(Key_4))   CurrentPostProcess = PostProcess::Fog;
+	if (KeyHit(Key_5))   CurrentPostProcess = PostProcess::Saturation;
 	if (KeyHit(Key_3))   CurrentPostProcess = PostProcess::Underwater;
 	if (KeyHit(Key_9))   CurrentPostProcess = PostProcess::Copy;
+	if (KeyHit(Key_M))   CurrentPostProcess = PostProcess::Vignette;
 	if (KeyHit(Key_0))   CurrentPostProcess = PostProcess::None;
-	// Post processing settings - all data for post-processes is updated every frame whether in use or not (minimal cost)
-	
-	// Colour for tint shader
-	//gPostProcessingConstants.tintColour1 = { 0.39, 0.33, 0.24 };
-	//gPostProcessingConstants.tintColour2 = { 0.04, 0.13, 0.19 };	
-	
 
-	gPostProcessingConstants.tintColour1 = { 0, 0, 1 };
-	gPostProcessingConstants.tintColour2 = { 1, 1, 0 };
+	// Post processing settings - all data for post-processes is updated every frame whether in use or not (minimal cost)
+		
+	
+	float a = (1.0 - saturationLevel) * rwgt + saturationLevel;
+	float b = (1.0 - saturationLevel) * rwgt;
+	float c = (1.0 - saturationLevel) * rwgt;
+	float d = (1.0 - saturationLevel) * gwgt;
+	float e = (1.0 - saturationLevel) * gwgt + saturationLevel;
+	float f = (1.0 - saturationLevel) * gwgt;
+	float g = (1.0 - saturationLevel) * bwgt;
+	float h = (1.0 - saturationLevel) * bwgt;
+	float i = (1.0 - saturationLevel) * bwgt + saturationLevel;
 
 	// Noise scaling adjusts how fine the grey noise is.
 	const float grainSize = 50; // Fineness of the noise grain
@@ -860,17 +897,25 @@ void PostProcessingScene::UpdateScene(float frameTime, HWND HWnd)
 	// The noise offset is randomised to give a constantly changing noise effect (like tv static)
 	gPostProcessingConstants.noiseOffset = { Random(0.0f, 1.0f), Random(0.0f, 1.0f) };
 
-	// Set and increase the burn level (cycling back to 0 when it reaches 1.0f)
-	const float burnSpeed = 0.2f;
-	gPostProcessingConstants.burnHeight = fmod(gPostProcessingConstants.burnHeight + burnSpeed * frameTime, 1.0f);
-
 	// Set the level of distortion
 	gPostProcessingConstants.distortLevel = 0.01f;
+	gPostProcessingConstants.PixelWidth = m_PixelWidth;
+	gPostProcessingConstants.PixelHeight = m_PixelHeight;
+
+	gPostProcessingConstants.BlurOffset = m_BlurOffset;
+	
+
+	gPostProcessingConstants.vignetteStrength = m_vignetteStrength;
+	gPostProcessingConstants.vignetteSize = m_vignetteSize;
+	gPostProcessingConstants.vignetteFalloff = m_vignetteFalloff;
 
 	// Set and increase the amount of spiral - use a tweaked cos wave to animate
 	static float wiggle = 0.0f;
 	const float wiggleSpeed = 1.0f;
-	gPostProcessingConstants.spiralLevel = ((1.0f - cos(wiggle)) * 4.0f );
+
+
+
+	gPostProcessingConstants.SaturationLevel = saturationLevel;
 	wiggle += wiggleSpeed * frameTime;
 
 	// Update heat haze timer
@@ -912,6 +957,12 @@ void PostProcessingScene::UpdateScene(float frameTime, HWND HWnd)
 		totalFrameTime = 0;
 		frameCount = 0;
 	}
+	if (postProcessingTimer <= 0.0f && !postProcessing)
+	{
+		CurrentPostProcessMode = PostProcessMode::Polygon;
+		postProcessing = true;
+	}
+	else postProcessingTimer -= frameTime;
 }
 
 void PostProcessingScene::IMGUI()
@@ -937,6 +988,11 @@ void PostProcessingScene::IMGUI()
 		{
 			CurrentPostProcessMode = PostProcessMode::Polygon;
 		}
+		ImGui::SameLine();
+		if (ImGui::Button("None", ButtonSize))
+		{
+			CurrentPostProcessMode = PostProcessMode::None;
+		}
 		ImGui::Separator();
 		if (ImGui::Button("Gradient Effect", ButtonSize))
 		{
@@ -945,7 +1001,7 @@ void PostProcessingScene::IMGUI()
 		ImGui::SameLine();
 		if (ImGui::Button("Blur Effect", ButtonSize))
 		{
-			CurrentPostProcess = PostProcess::GreyNoise;
+			CurrentPostProcess = PostProcess::Blur;
 		}
 
 		if (ImGui::Button("Underwater Effect", ButtonSize))
@@ -953,6 +1009,17 @@ void PostProcessingScene::IMGUI()
 			CurrentPostProcess = PostProcess::Underwater;
 		}
 
+		ImGui::SliderFloat("Saturation Level",&saturationLevel, -1.0f, 50.0f);
+
+		ImGui::SliderFloat("Vignette Strength", &m_vignetteStrength, 0.0f, 2.5f);
+		ImGui::SliderFloat("Vignette Size", &m_vignetteSize, 0.0f, 2.5f);
+		ImGui::SliderFloat("Vignette Falloff", &m_vignetteFalloff, 0.0f, 2.5f);
+
+		ImGui::SliderInt("Pixel Width", &m_PixelWidth, 4, 128);
+		ImGui::SliderInt("Pixel Height", &m_PixelHeight, 4, 128);
+		ImGui::SliderFloat("Blur offset", &m_BlurOffset, 0.001, 0.009);
+		
+		
 		ImGui::End();
 
 

@@ -1,4 +1,4 @@
-//--------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------
 // 2D Quad Post-Processing Vertex Shader
 //--------------------------------------------------------------------------------------
 // Vertex shader generates a 2D quad on the screen so the pixel shader can copy/process the scene texture to it
@@ -17,9 +17,9 @@
 // It uses this index to create 4 points of a full screen quad (coordinates -1 to 1), it also generates texture
 // coordinates because the post-processing will sample a texture containing a picture of the scene.
 // No vertex or index buffer is required, which makes the C++ side simpler
-PostProcessingInput main(uint vertexId : SV_VertexID)
+PostProcessingInputWithNeighbouringPixels main(uint vertexId : SV_VertexID)
 {
-	PostProcessingInput output; // Defined in Common.hlsi
+    PostProcessingInputWithNeighbouringPixels output; // Defined in Common.hlsi
 
 	// Four corners of a quad. These are used together with the quad size values passed over in the constant buffer.
 	// We calculate the screen coordinates of the screen quad being written to and the UV coordinates of the scene texture to use as a source
@@ -42,29 +42,19 @@ PostProcessingInput main(uint vertexId : SV_VertexID)
 	output.areaUV  = quadCoord;  // These UVs refer to the area being post-processed (see ascii diagram below)
 	output.sceneUV = areaCoord;  // These UVs refer to the scene texture (see diagram below)
 	output.projectedPosition = float4( screenCoord, gArea2DDepth, 1 );
+	
+    float texelSize = 1.0f / gViewportWidth;
 
-
-	// We send two sets of UV coordinates to the post-processing shaders
-	// - The uvScene coordinates indicate which pixels of the scene texture to sample
-	//     - They are used to sample the pixels in the scene texture
-	// - The uvArea coordinates indicate which part of the area itself we are in
-	//     - Used so effects know where the edge of the affected area are for fading out or for sampling a secondary texture,
-	//       such as the distortion or burn texture
-	// - For full screen effects, these two coordinates are the same which is why they weren't present in the full-screen lab
-	//
-	// uvScene = (0,0) here
-	//    +-------------------------------+
-	//    |                               |
-	//    |                               |
-	//    |  uvArea = (0,0)               |
-	//    |       +--------------+        |
-	//    |       |              |        |
-	//    |       |              |        |
-	//    |       +--------------+        |
-	//    |               uvArea = (1,1)  |
-	//    |                               |
-	//    |                               |
-	//    +-------------------------------+
-	//                               uvScene = (1,1) here
+    // Create UV coordinates for the pixel and its four horizontal neighbors on either side.
+    output.texCoord1 = output.sceneUV + float2(texelSize * -4.0f, 0.0f);
+    output.texCoord2 = output.sceneUV + float2(texelSize * -3.0f, 0.0f);
+    output.texCoord3 = output.sceneUV + float2(texelSize * -2.0f, 0.0f);
+    output.texCoord4 = output.sceneUV + float2(texelSize * -1.0f, 0.0f);
+    output.texCoord5 = output.sceneUV + float2(texelSize * 0.0f, 0.0f);
+    output.texCoord6 = output.sceneUV + float2(texelSize * 1.0f, 0.0f);
+    output.texCoord7 = output.sceneUV + float2(texelSize * 2.0f, 0.0f);
+    output.texCoord8 = output.sceneUV + float2(texelSize * 3.0f, 0.0f);
+    output.texCoord9 = output.sceneUV + float2(texelSize * 4.0f, 0.0f);
+	
 	return output;
 }

@@ -26,6 +26,9 @@ ID3D11RenderTargetView* gBackBufferRenderTarget = nullptr;
 ID3D11Texture2D*        gDepthStencilTexture = nullptr; // The texture holding the depth values
 ID3D11DepthStencilView* gDepthStencil        = nullptr; // The depth buffer referencing above texture
 
+ID3D11Texture2D*        gDownSampleDepthStencilTexture = nullptr; // The texture holding the depth values
+ID3D11DepthStencilView* gDownSampleDepthStencil = nullptr; // The depth buffer referencing above texture
+
 
 
 //--------------------------------------------------------------------------------------
@@ -44,6 +47,7 @@ bool InitDirect3D(int ViewportWidth, int ViewportHeight, HWND HWnd, std::string 
     // Create a Direct3D device (i.e. initialise D3D) and create a swap-chain (create a back buffer to render to)
     DXGI_SWAP_CHAIN_DESC swapDesc = {};
     swapDesc.OutputWindow = HWnd;                           // Target window
+    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swapDesc.Windowed = TRUE;
     swapDesc.BufferCount = 1;
     swapDesc.BufferDesc.Width  = ViewportWidth;             // Target window size
@@ -102,6 +106,15 @@ bool InitDirect3D(int ViewportWidth, int ViewportHeight, HWND HWnd, std::string 
         LastError = "Error creating depth buffer texture";
         return false;
     }
+    dbDesc.Width = ViewportWidth / 2;
+    dbDesc.Height = ViewportHeight / 2;
+    hr = gD3DDevice->CreateTexture2D(&dbDesc, nullptr, &gDownSampleDepthStencilTexture);
+    if (FAILED(hr))
+    {
+        LastError = "Error creating depth buffer texture";
+        return false;
+    }
+	
 
     // Create the depth stencil view - an object to allow us to use the texture
     // just created as a depth buffer
@@ -116,10 +129,16 @@ bool InitDirect3D(int ViewportWidth, int ViewportHeight, HWND HWnd, std::string 
         LastError = "Error creating depth buffer view";
         return false;
     }
+    hr = gD3DDevice->CreateDepthStencilView(gDownSampleDepthStencilTexture, &dsvDesc,
+        &gDownSampleDepthStencil);
+    if (FAILED(hr))
+    {
+        LastError = "Error creating depth buffer view";
+        return false;
+    }
     
     return true;
 }
-
 
 // Release the memory held by all objects created
 void ShutdownDirect3D()
@@ -137,4 +156,7 @@ void ShutdownDirect3D()
     if (gBackBufferRenderTarget) gBackBufferRenderTarget->Release();
     if (gSwapChain)              gSwapChain->Release();
     if (gD3DDevice)              gD3DDevice->Release();
+	
+	if (gDownSampleDepthStencil) gDownSampleDepthStencil->Release();
+	if (gDownSampleDepthStencilTexture) gDownSampleDepthStencilTexture->Release();
 }

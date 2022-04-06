@@ -104,8 +104,8 @@
     <ClInclude Include="External\GUI\backends\imgui_impl_dx11.h" />
     <ClInclude Include="External\GUI\backends\imgui_impl_win32.h" />
     <ClInclude Include="Src\BasicScene\BaseScene.h" />
-    <ClInclude Include="Src\BasicScene\Camera.h" />
     <ClInclude Include="Src\BasicScene\CLight.h" />
+    <ClInclude Include="Src\BasicScene\Camera.h" />
     <ClInclude Include="Src\Data\Mesh.h" />
     <ClInclude Include="Src\Data\Model.h" />
     <ClInclude Include="Src\Data\State.h" />
@@ -116,10 +116,11 @@
     <ClInclude Include="Src\Math\MathHelpers.h" />
     <ClInclude Include="Src\PostProcessingScene\PostProcessingScene.h" />
     <ClInclude Include="Src\Shaders\Shader.h" />
+    <ClInclude Include="Src\System\CRenderTexture.h" />
     <ClInclude Include="Src\System\Direct3DSetup.h" />
     <ClInclude Include="Src\System\System.h" />
-    <ClInclude Include="Src\Utility\ColourRGBA.h" />
     <ClInclude Include="Src\Utility\CResourceManager.h" />
+    <ClInclude Include="Src\Utility\ColourRGBA.h" />
     <ClInclude Include="Src\Utility\GraphicsHelpers.h" />
     <ClInclude Include="Src\Utility\Input.h" />
     <ClInclude Include="Src\Utility\Timer.h" />
@@ -129,8 +130,8 @@
     <ClCompile Include="External\GUI\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="External\GUI\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Src\BasicScene\BaseScene.cpp" />
-    <ClCompile Include="Src\BasicScene\Camera.cpp" />
     <ClCompile Include="Src\BasicScene\CLight.cpp" />
+    <ClCompile Include="Src\BasicScene\Camera.cpp" />
     <ClCompile Include="Src\Data\Mesh.cpp" />
     <ClCompile Include="Src\Data\Model.cpp" />
     <ClCompile Include="Src\Data\State.cpp" />
@@ -140,6 +141,7 @@
     <ClCompile Include="Src\Math\CVector4.cpp" />
     <ClCompile Include="Src\PostProcessingScene\PostProcessingScene.cpp" />
     <ClCompile Include="Src\Shaders\Shader.cpp" />
+    <ClCompile Include="Src\System\CRenderTexture.cpp" />
     <ClCompile Include="Src\System\Direct3DSetup.cpp" />
     <ClCompile Include="Src\System\System.cpp" />
     <ClCompile Include="Src\Utility\CResourceManager.cpp" />
@@ -154,19 +156,20 @@
       <ObjectFileOutput>Src/Shaders/2DPolygon_vs.cso</ObjectFileOutput>
       <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\2DQuad_vs.hlsl">
+    <FxCompile Include="Src\Shaders\2DQuadwithHorizontalNeighbours_vs.hlsl">
       <ShaderType>Vertex</ShaderType>
-      <ObjectFileOutput>Src/Shaders/2DQuad_vs.cso</ObjectFileOutput>
+      <ObjectFileOutput>Src/Shaders/2DQuadwithHorizontalNeighbours_vs.cso</ObjectFileOutput>
+      <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\2DQuadwithVerticalNeighbours_vs.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>Src/Shaders/2DQuadwithVerticalNeighbours_vs.cso</ObjectFileOutput>
       <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
     </FxCompile>
     <FxCompile Include="Src\Shaders\BasicTransform_vs.hlsl">
       <ShaderType>Vertex</ShaderType>
       <ObjectFileOutput>Src/Shaders/BasicTransform_vs.cso</ObjectFileOutput>
       <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\Burn_ps.hlsl">
-      <ShaderType>Pixel</ShaderType>
-      <ObjectFileOutput>Src/Shaders/Burn_ps.cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="Src\Shaders\Copy_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
@@ -176,13 +179,26 @@
       <ShaderType>Pixel</ShaderType>
       <ObjectFileOutput>Src/Shaders/Distort_ps.cso</ObjectFileOutput>
     </FxCompile>
+    <FxCompile Include="Src\Shaders\Fisheye_ps.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>Src/Shaders/Fisheye_ps.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Fog_ps.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>Src/Shaders/Fog_ps.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Fog_vs.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>Src/Shaders/Fog_vs.cso</ObjectFileOutput>
+      <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
+    </FxCompile>
     <FxCompile Include="Src\Shaders\GreyNoise_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
       <ObjectFileOutput>Src/Shaders/GreyNoise_ps.cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\HeatHaze_ps.hlsl">
+    <FxCompile Include="Src\Shaders\HorizontalBlur_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
-      <ObjectFileOutput>Src/Shaders/HeatHaze_ps.cso</ObjectFileOutput>
+      <ObjectFileOutput>Src/Shaders/HorizontalBlur_ps.cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="Src\Shaders\PixelLighting_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
@@ -193,9 +209,13 @@
       <ObjectFileOutput>Src/Shaders/PixelLighting_vs.cso</ObjectFileOutput>
       <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\Spiral_ps.hlsl">
+    <FxCompile Include="Src\Shaders\Pixelation_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
-      <ObjectFileOutput>Src/Shaders/Spiral_ps.cso</ObjectFileOutput>
+      <ObjectFileOutput>Src/Shaders/Pixelation_ps.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Saturation_ps.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>Src/Shaders/Saturation_ps.cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="Src\Shaders\Tint_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
@@ -204,6 +224,18 @@
     <FxCompile Include="Src\Shaders\TintedTexture_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
       <ObjectFileOutput>Src/Shaders/TintedTexture_ps.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Underwater_ps.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>Src/Shaders/Underwater_ps.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\VerticalBlur_ps.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>Src/Shaders/VerticalBlur_ps.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\Vignette_ps.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>Src/Shaders/Vignette_ps.cso</ObjectFileOutput>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
