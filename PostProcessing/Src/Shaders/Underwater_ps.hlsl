@@ -21,7 +21,7 @@ SamplerState PointSample  : register(s0); // We don't usually want to filter (bi
 //--------------------------------------------------------------------------------------
 
 // Post-processing shader that tints the scene texture to a given colour
-float4 main(PostProcessingInputWithNeighbouringPixels input) : SV_Target
+float4 main(PostProcessingInput input) : SV_Target
 {
 	const float effectStrength = 0.015f;
 	

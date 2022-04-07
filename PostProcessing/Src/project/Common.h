@@ -110,14 +110,14 @@ struct PostProcessingConstants
 
 	// Tint post-process settings
 	CVector3 tintColour1;
-	float    FogStart;
+	float    BlurWidth;
 
 	// Grey noise post-process settings
     CVector2 noiseScale;
 	CVector2 noiseOffset;
 
 	// Burn post-process settings
-	float    FogEnd;
+	float    BlurHeight;
 	CVector3 tintColour2;
 
 	// Distort post-process settings

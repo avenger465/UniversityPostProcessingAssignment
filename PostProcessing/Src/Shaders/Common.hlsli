@@ -148,14 +148,14 @@ cbuffer PostProcessingConstants : register(b1)
     
 	// Tint post-process settings
 	float3 gTintColour1;
-	float  gFogStart;
+	float  gBlurWidth;
 
 	// Grey noise post-process settings
     float2 gNoiseScale;
 	float2 gNoiseOffset;
 
 	// Burn post-process settings
-	float  gFogEnd;
+	float  gBlurHeight;
 	float3 gTintColour2;
 
 	// Distort post-process settings

@@ -75,7 +75,7 @@ float3 RGBtoHSL(float3 RGB)
 }
 
 // Post-processing shader that tints the scene texture to a given colour
-float4 main(PostProcessingInputWithNeighbouringPixels input) : SV_Target
+float4 main(PostProcessingInput input) : SV_Target
 {
 	// Sample a pixel from the scene texture and multiply it with the tint colour (comes from a constant buffer defined in Common.hlsli)
 	float3 colour = SceneTexture.Sample(PointSample, input.sceneUV).rgb;
@@ -88,6 +88,7 @@ float4 main(PostProcessingInputWithNeighbouringPixels input) : SV_Target
     FinalColour.x += gHeatHazeTimer / 10;
     
     FinalColour = HSLtoRGB(FinalColour);
+    
     
 	
 	return float4(FinalColour, 1.0f);

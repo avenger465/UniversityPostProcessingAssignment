@@ -64,19 +64,37 @@ private:
 		Underwater,
 		Pixelation,
 		Vignette,
-		Blur,
 	};
 	PostProcess CurrentPostProcess = PostProcess::Copy;
 
 	enum class PostProcessMode
 	{
 		Fullscreen,
-		Area,
 		Polygon,
 		None
 	};
 	PostProcessMode CurrentPostProcessMode = PostProcessMode::Fullscreen;
 
+	//return CurrentPostProcessMode as string
+	std::string GetPostProcessModeString(PostProcessMode m)
+	{
+		switch (m)
+		{
+		case PostProcessingScene::PostProcessMode::Fullscreen:
+			return "Fullscreen";
+			break;
+		case PostProcessingScene::PostProcessMode::Polygon:
+			return  "Polygon";
+			break;
+		case PostProcessingScene::PostProcessMode::None:
+			return "None";
+			break;
+		default:
+			return "";
+			break;
+		}
+	}
+	
 	struct Light
 	{
 		Model* model;
@@ -92,7 +110,7 @@ private:
 
 	void FullScreenPostProcess(PostProcess postProcess, ID3D11ShaderResourceView* renderResource);
 
-	void AreaPostProcess(PostProcess postProcess, CVector3 worldPoint, CVector2 areaSize, Camera* camera, ID3D11ShaderResourceView* renderResource);
+	void FirstRender();
 
 
 
@@ -169,5 +187,8 @@ private:
 	int m_PixelWidth = 64;
 	int m_PixelHeight = 64;
 
-	float m_BlurOffset = 0.005f;
+	int m_BlurOffset = 700;
+	int m_NumberOfFullscreenEffects = 0;
+	
+	std::vector<PostProcess> m_ListOfEffects;
 };
