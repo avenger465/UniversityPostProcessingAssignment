@@ -19,9 +19,6 @@ float4 main(PostProcessingInput input) : SV_Target
 	
 	// Calculate alpha to display the effect in a softened circle, could use a texture rather than calculations for the same task.
 	// Uses the second set of area texture coordinates, which range from (0,0) to (1,1) over the area being processed
-	const float softEdge = 0.15f; // Softness of the edge of the circle - range 0.001 (hard edge) to 0.25 (very soft)
-	float2 centreVector = input.areaUV - float2(0.5f, 0.5f);
-	float centreLengthSq = dot(centreVector, centreVector) / 2.5;
     float alpha = 0;
 
 	// Haze is a combination of sine waves in x and y dimensions
