@@ -57,33 +57,33 @@ float3 RGBtoHSL(float3 RGB)
     float diff = maxComponent - minComponent;
     
     //initialise Hue
-    float hue = 0;
+    float H = 0;
     
     //Calculate the Hue value based on the maxComponent
     if (maxComponent == RGB.r)
     {
-        hue = 0 + (RGB.g - RGB.b) / diff;
+        H = 0 + (RGB.g - RGB.b) / diff;
     }
     else if (maxComponent == RGB.g)
     {
-        hue = 2 + (RGB.b - RGB.r) / diff;
+        H = 2 + (RGB.b - RGB.r) / diff;
     }
     else if (maxComponent == RGB.b)
     {
-        hue = 4 + (RGB.r - RGB.g) / diff;
+        H = 4 + (RGB.r - RGB.g) / diff;
     }
     
     //Convert the Hue value to degrees
-    hue = frac(hue / 6);
+    H = frac(H / 6);
 
     //Calculate the saturation value
-    float saturation = diff / maxComponent;
+    float S = diff / maxComponent;
     
-    //Calculate the lightness value
-    float value = maxComponent;
+    //Calculate the luminance value
+    float L = minComponent + maxComponent;
     
     //Return the HSL values
-    return float3(hue, saturation, value);
+    return float3(H, S, L);
  
 }
 

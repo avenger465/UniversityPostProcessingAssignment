@@ -29,14 +29,14 @@ PostProcessingScene::PostProcessingScene(int width, int height)
 	m_ViewportHeight = height;
 	resourceManager = new CResourceManager();
 	MainCamera = new Camera();
-	FisheyeCamera = new Camera();
+	m_FisheyeCamera = new Camera();
 
-	windowFlags |= ImGuiWindowFlags_NoScrollbar;
-	windowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
-	windowFlags |= ImGuiWindowFlags_NoMove;
+	m_WindowFlags |= ImGuiWindowFlags_NoScrollbar;
+	m_WindowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
+	m_WindowFlags |= ImGuiWindowFlags_NoMove;
 
-	m_Scenetexture = 0;
-	m_SecondPasstexture = 0;
+	m_SceneTexture = 0;
+	m_SecondPassTexture = 0;
 	m_HorizontalBlurTexture = 0;
 	m_VerticalBlurTexture = 0;
 	m_CameraTexture = 0;
@@ -51,11 +51,14 @@ bool PostProcessingScene::InitGeometry(std::string& LastError)
 	try
 	{
 		resourceManager->loadMesh(L"StarsMesh", std::string("Data/Stars.x"));
-		resourceManager->loadMesh(L"GroundMesh", std::string("Data/Ground.x"));
+		resourceManager->loadMesh(L"GroundMesh", std::string("Data/Hills.x"));
 		resourceManager->loadMesh(L"CubeMesh", std::string("Data/Cube.x"));
 		resourceManager->loadMesh(L"Wall1Mesh", std::string("Data/Wall1.x"));
 		resourceManager->loadMesh(L"Wall2Mesh", std::string("Data/Wall2.x"));
 		resourceManager->loadMesh(L"LightMesh", std::string("Data/Light.x"));
+		resourceManager->loadMesh(L"ContainerMesh", std::string("Data/CargoContainer.x"));
+		resourceManager->loadMesh(L"TeapotMesh", std::string("Data/Teapot.x"));
+		resourceManager->loadMesh(L"TrollMesh", std::string("Data/Troll.x"));
 	}
 	catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
 	{
@@ -73,11 +76,14 @@ bool PostProcessingScene::InitGeometry(std::string& LastError)
 		resourceManager->loadTexture(L"GroundTexture", std::string("Data/GrassDiffuseSpecular.dds"));
 		resourceManager->loadTexture(L"CubeTexture", std::string("Data/StoneDiffuseSpecular.dds"));
 		resourceManager->loadTexture(L"WallsTexture", std::string("Data/CargoA.dds"));
-
 		resourceManager->loadTexture(L"LightsTexture", std::string("Media/Flare.jpg"));
+		resourceManager->loadTexture(L"ContainerTexture", std::string("Data/CargoA.dds"));
+		resourceManager->loadTexture(L"TeapotTexture", std::string("Data/StoneDiffuseSpecular.dds"));
+		resourceManager->loadTexture(L"TrollTexture", std::string("Data/TrollDiffuseSpecular.dds"));
+		
 		resourceManager->loadTexture(L"NoiseMap", std::string("Media/Noise.png"));
-		resourceManager->loadTexture(L"BurnMap", std::string("Media/Burn.png"));
 		resourceManager->loadTexture(L"DistortMap", std::string("Media/Distort.png"));
+		
 		resourceManager->loadTexture(L"SpadeAlphaMap", std::string("Media/SpadeAlphaMap.png"));
 		resourceManager->loadTexture(L"CloverAlphaMap", std::string("Media/CloverAlphaMap.png"));
 		resourceManager->loadTexture(L"HeartAlphaMap", std::string("Media/HeartAlphaMap.png"));
@@ -131,38 +137,52 @@ bool PostProcessingScene::InitScene()
 	////--------------- Set up scene ---------------////
 
 	// Creation of Models in the scene
-	gStars  = new Model(resourceManager->getMesh(L"StarsMesh"));
-	gGround = new Model(resourceManager->getMesh(L"GroundMesh"));
-	gCube   = new Model(resourceManager->getMesh(L"CubeMesh"));
-	gWall1  = new Model(resourceManager->getMesh(L"Wall1Mesh"));
-	gWall2  = new Model(resourceManager->getMesh(L"Wall2Mesh"));
+	m_StarsModel	 = new Model(resourceManager->getMesh(L"StarsMesh"));
+	m_GroundModel	 = new Model(resourceManager->getMesh(L"GroundMesh"));
+	m_CubeModel		 = new Model(resourceManager->getMesh(L"CubeMesh"));
+	m_Wall1Model	 = new Model(resourceManager->getMesh(L"Wall1Mesh"));
+	m_Wall2Model	 = new Model(resourceManager->getMesh(L"Wall2Mesh"));
+	m_ContainerModel = new Model(resourceManager->getMesh(L"ContainerMesh"));
+	m_TeapotModel	 = new Model(resourceManager->getMesh(L"TeapotMesh"));
+	m_TrollModel	 = new Model(resourceManager->getMesh(L"TrollMesh"));
 
 	// Initial positions
-	gCube->SetPosition({ gWall2->Position().x - 5.5f, 10, gWall2->Position().z + 100 });
-	gCube->SetRotation({ 0.0f, ToRadians(-110.0f), 0.0f });
-	gCube->SetScale(1.5f);
 	
-	gWall1->SetPosition({ 41.85, 0, 36.9 });
-	gWall1->SetRotation({ 0.0f, ToRadians(90.0f), 0.0f });
-	gWall1->SetScale(40.0f);
+	m_Wall1Model->SetPosition({ 41.85, 0, 36.9 });
+	m_Wall1Model->SetRotation({ 0.0f, ToRadians(90.0f), 0.0f });
+	m_Wall1Model->SetScale(40.0f);
 
-	gWall2->SetPosition({ 10, 0, 68 });
-	gWall2->SetScale(40.0f);
+	m_Wall2Model->SetPosition({ 10, 0, 68 });
+	m_Wall2Model->SetScale(40.0f);
+	
+	
+	m_CubeModel->SetScale(1.5f);
+	m_CubeModel->SetPosition({ m_Wall2Model->Position().x - 15, 7, m_Wall2Model->Position().z + 40 });
+	m_CubeModel->SetRotation({ 0.0f, ToRadians(-110.0f), 0.0f });
 
-	gStars->SetScale(8000.0f);
+	m_ContainerModel->SetPosition({90.0, 1.0f, 30.0f});
+	m_ContainerModel->SetScale(5.0f);
+
+	m_TeapotModel->SetScale(1.5f);
+	m_TeapotModel->SetPosition({ 40.0f, 1.0f, 130 });
+
+	m_TrollModel->SetScale(5.0f);
+	m_TrollModel->SetPosition({5.0f, 1.0f, 5.0f});
+
+	m_StarsModel->SetScale(8000.0f);
 
 	// Calculate the Matrices for the polygons that will go into the windows in the wall
 
-	polyMatrix = MatrixTranslation({ gWall1->Position().x, 10, gWall1->Position().z });
-	polyMatrix = MatrixRotationY(ToRadians(90)) * polyMatrix;
+	m_SquareMatrix = MatrixTranslation({ m_Wall1Model->Position().x, 10, m_Wall1Model->Position().z });
+	m_SquareMatrix = MatrixRotationY(ToRadians(90)) * m_SquareMatrix;
 
-	HeartMatrix = MatrixTranslation({ gWall2->Position().x + 18, 10, gWall2->Position().z});
+	m_HeartMatrix = MatrixTranslation({ m_Wall2Model->Position().x + 18, 10, m_Wall2Model->Position().z});
 
-	SpadeMatrix = MatrixTranslation({ gWall2->Position().x - 18, 10, gWall2->Position().z});
+	m_SpadeMatrix = MatrixTranslation({ m_Wall2Model->Position().x - 18, 10, m_Wall2Model->Position().z});
 
-	DiamondMatrix = MatrixTranslation({ gWall2->Position().x - 5, 10, gWall2->Position().z});
+	m_DiamondMatrix = MatrixTranslation({ m_Wall2Model->Position().x - 5, 10, m_Wall2Model->Position().z});
 
-	CloverMatrix = MatrixTranslation({ gWall2->Position().x + 6, 10, gWall2->Position().z});
+	m_CloverMatrix = MatrixTranslation({ m_Wall2Model->Position().x + 6, 10, m_Wall2Model->Position().z});
 
 	// Light set-up - using an array this time
 	for (int i = 0; i < NUM_LIGHTS; ++i)
@@ -177,19 +197,24 @@ bool PostProcessingScene::InitScene()
 
 	Lights[1].colour = { 1.0f, 0.8f, 0.2f };
 	Lights[1].strength = 40;
-	Lights[1].model->SetPosition({ -70, 30, 100 });
+	Lights[1].model->SetPosition({ 17.5f, 30, 100 });
 	Lights[1].model->SetScale(pow(Lights[1].strength, 1.0f));
+
+	Lights[2].colour = { 1.0f, 0.1f, 0.7f };
+	Lights[2].strength = 40;
+	Lights[2].model->SetPosition({ 90, 30, 30 });
+	Lights[2].model->SetScale(pow(Lights[1].strength, 1.0f));
 
 	////--------------- Set up cameras ---------------////
 
 	MainCamera->SetPosition({ 25, 18, -45 });
 	MainCamera->SetRotation({ ToRadians(10.0f), ToRadians(7.0f), 0.0f });
 
-	FisheyeCamera->SetPosition({ gWall2->Position().x - 18, 10, gWall2->Position().z + 1 });
+	m_FisheyeCamera->SetPosition({ m_Wall2Model->Position().x - 18, 10, m_Wall2Model->Position().z + 1 });
 	
 	//Set up the Post-Processing constants that do not need to be changed during the scene
-	gPostProcessingConstants.tintColour1 = Colour1;
-	gPostProcessingConstants.tintColour2 = Colour2;	
+	gPostProcessingConstants.tintColour1 = m_Colour1;
+	gPostProcessingConstants.tintColour2 = m_Colour2;	
 	gPostProcessingConstants.LuminanceWeights = CVector3(0.2126f, 0.7152f, 0.0722f);
 
 	return true;
@@ -204,10 +229,10 @@ void PostProcessingScene::ReleaseResources()
 	if (PerModelConstantBuffer)        PerModelConstantBuffer->Release();
 	if (PerFrameConstantBuffer)        PerFrameConstantBuffer->Release();
 
-	if (m_Scenetexture)			   m_Scenetexture->Shutdown();
-	if (m_SecondPasstexture)       m_SecondPasstexture->Shutdown();
+	if (m_SceneTexture)			   m_SceneTexture->Shutdown();
+	if (m_SecondPassTexture)       m_SecondPassTexture->Shutdown();
 	if (m_CameraTexture)           m_CameraTexture->Shutdown();
-	if (m_SquareHolePostProcess)   m_SquareHolePostProcess->Shutdown();
+	if (m_SquareHolePostProcessTexture)   m_SquareHolePostProcessTexture->Shutdown();
 	if (m_HorizontalBlurTexture)   m_HorizontalBlurTexture->Shutdown();
 	if (m_VerticalBlurTexture)     m_VerticalBlurTexture->Shutdown();
 	
@@ -221,12 +246,12 @@ void PostProcessingScene::ReleaseResources()
 		delete Lights[i].model;  Lights[i].model = nullptr;
 	}
 	delete MainCamera;  MainCamera = nullptr;
-	delete FisheyeCamera;  FisheyeCamera = nullptr;
-	delete gWall1;   gWall1 = nullptr;
-	delete gWall2;   gWall2 = nullptr;
-	delete gCube;    gCube = nullptr;
-	delete gGround;  gGround = nullptr;
-	delete gStars;   gStars = nullptr;
+	delete m_FisheyeCamera;  m_FisheyeCamera = nullptr;
+	delete m_Wall1Model;   m_Wall1Model = nullptr;
+	delete m_Wall2Model;   m_Wall2Model = nullptr;
+	delete m_CubeModel;    m_CubeModel = nullptr;
+	delete m_GroundModel;  m_GroundModel = nullptr;
+	delete m_StarsModel;   m_StarsModel = nullptr;
 }
 
 // Render everything in the scene from the given camera
@@ -249,21 +274,32 @@ void PostProcessingScene::RenderSceneFromCamera(Camera* camera)
 	////--------------- Render ordinary models ---------------///
 
 	// Render lit models, only change textures for each one
-	gGround->Setup(gPixelLightingVertexShader, gPixelLightingPixelShader);
+	m_GroundModel->Setup(gPixelLightingVertexShader, gPixelLightingPixelShader);
 	gD3DContext->GSSetShader(nullptr, nullptr, 0);  // Switch off geometry shader when not using it (pass nullptr for first parameter)
-	gGround->SetStates(gNoBlendingState, gUseDepthBufferState, gCullBackState);
+	m_GroundModel->SetStates(gNoBlendingState, gUseDepthBufferState, gCullBackState);
 	gD3DContext->PSSetSamplers(0, 1, &gAnisotropic4xSampler);
-	gGround->SetShaderResources(0, resourceManager->getTexture(L"GroundTexture"));
-	gGround->Render(PerModelConstantBuffer, gPerModelConstants);
-
-	gWall1->SetShaderResources(0, resourceManager->getTexture(L"BricksTexture"));
-	gWall1->Render(PerModelConstantBuffer, gPerModelConstants);
 	
-	gWall2->SetShaderResources(0, resourceManager->getTexture(L"BricksTexture"));
-	gWall2->Render(PerModelConstantBuffer, gPerModelConstants);
+	m_GroundModel->SetShaderResources(0, resourceManager->getTexture(L"GroundTexture"));
+	m_GroundModel->Render(PerModelConstantBuffer, gPerModelConstants);
 
-	gCube->SetShaderResources(0, resourceManager->getTexture(L"CubeTexture"));
-	gCube->Render(PerModelConstantBuffer, gPerModelConstants);
+	m_Wall1Model->SetShaderResources(0, resourceManager->getTexture(L"BricksTexture"));
+	m_Wall1Model->Render(PerModelConstantBuffer, gPerModelConstants);
+	
+	m_Wall2Model->SetShaderResources(0, resourceManager->getTexture(L"BricksTexture"));
+	m_Wall2Model->Render(PerModelConstantBuffer, gPerModelConstants);
+
+	m_CubeModel->SetShaderResources(0, resourceManager->getTexture(L"CubeTexture"));
+	m_CubeModel->Render(PerModelConstantBuffer, gPerModelConstants);
+	
+	m_ContainerModel->SetShaderResources(0, resourceManager->getTexture(L"ContainerTexture"));
+	m_ContainerModel->Render(PerModelConstantBuffer, gPerModelConstants);
+
+	m_TeapotModel->SetShaderResources(0, resourceManager->getTexture(L"TeapotTexture"));
+	m_TeapotModel->Render(PerModelConstantBuffer, gPerModelConstants);
+	
+	m_TrollModel->SetShaderResources(0, resourceManager->getTexture(L"TrollTexture"));
+	m_TrollModel->Render(PerModelConstantBuffer, gPerModelConstants);
+
 
 	////--------------- Render sky ---------------////
 
@@ -273,10 +309,10 @@ void PostProcessingScene::RenderSceneFromCamera(Camera* camera)
 	gPerModelConstants.objectColour = { 1, 1, 1 };
 
 	// Render sky
-	gStars->Setup(gBasicTransformVertexShader, gTintedTexturePixelShader);
-	gStars->SetStates(gNoBlendingState, gUseDepthBufferState, gCullNoneState);
-	gStars->SetShaderResources(0, resourceManager->getTexture(L"StarsTexture"));
-	gStars->Render(PerModelConstantBuffer, gPerModelConstants);
+	m_StarsModel->Setup(gBasicTransformVertexShader, gTintedTexturePixelShader);
+	m_StarsModel->SetStates(gNoBlendingState, gUseDepthBufferState, gCullNoneState);
+	m_StarsModel->SetShaderResources(0, resourceManager->getTexture(L"StarsTexture"));
+	m_StarsModel->Render(PerModelConstantBuffer, gPerModelConstants);
 
 	////--------------- Render lights ---------------////
 	// Render all the lights in the array
@@ -395,18 +431,18 @@ bool PostProcessingScene::CreateRenderTextures(std::string& LastError)
 {
 	bool result;
 
-	m_Scenetexture = new CRenderTexture;
-	if (!m_Scenetexture) return false;
-	result = m_Scenetexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
+	m_SceneTexture = new CRenderTexture;
+	if (!m_SceneTexture) return false;
+	result = m_SceneTexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
 	if (!result)
 	{
 		LastError = "Error creating Scene Texture";
 		return false;
 	}
 
-	m_SecondPasstexture = new CRenderTexture;
-	if (!m_SecondPasstexture) return false;
-	result = m_SecondPasstexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
+	m_SecondPassTexture = new CRenderTexture;
+	if (!m_SecondPassTexture) return false;
+	result = m_SecondPassTexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
 	if (!result)
 	{
 		LastError = "Error creating SecondPass Texture";
@@ -437,9 +473,9 @@ bool PostProcessingScene::CreateRenderTextures(std::string& LastError)
 		return false;
 	}
 
-	m_SquareHolePostProcess = new CRenderTexture;
-	if (!m_SquareHolePostProcess) return false;
-	result = m_SquareHolePostProcess->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
+	m_SquareHolePostProcessTexture = new CRenderTexture;
+	if (!m_SquareHolePostProcessTexture) return false;
+	result = m_SquareHolePostProcessTexture->Initialize(gD3DDevice, m_ViewportWidth, m_ViewportHeight);
 	if (!result)
 	{
 		LastError = "Error creating Vertical blur texture";
@@ -486,7 +522,7 @@ void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess, ID3D11S
 		gD3DContext->Draw(4, 0);
 
 		//Perform a copy of the blurred texture to the SecondPass texture that will be used by the back buffer later
-		m_SecondPasstexture->SetRenderTarget(gD3DContext, gDepthStencil);
+		m_SecondPassTexture->SetRenderTarget(gD3DContext, gDepthStencil);
 
 		//Select the copy shader
 		SelectPostProcessShaderAndTextures(PostProcess::Copy);
@@ -500,8 +536,8 @@ void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess, ID3D11S
 	else
 	{
 		//Perform the selected post process to the SecondPass texture that will be used by the back buffer later
-		m_SecondPasstexture->SetRenderTarget(gD3DContext, gDepthStencil);
-		m_SecondPasstexture->ClearRenderTarget(gD3DContext, gBackgroundColor);
+		m_SecondPassTexture->SetRenderTarget(gD3DContext, gDepthStencil);
+		m_SecondPassTexture->ClearRenderTarget(gD3DContext, gBackgroundColor);
 		
 		currentShaderTexture = renderResource;//m_Scenetexture->GetShaderResourceView();
 		gD3DContext->PSSetShaderResources(0, 1, &currentShaderTexture);
@@ -528,7 +564,7 @@ void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess, ID3D11S
 	
 	//Draw the rendered texture to the back buffer
 	gD3DContext->OMSetRenderTargets(1, &gBackBufferRenderTarget, gDepthStencil);
-	currentShaderTexture = m_SecondPasstexture->GetShaderResourceView();
+	currentShaderTexture = m_SecondPassTexture->GetShaderResourceView();
 	gD3DContext->PSSetShaderResources(0, 1, &currentShaderTexture);
 
 	//// Draw a quad
@@ -539,7 +575,7 @@ void PostProcessingScene::FullScreenPostProcess(PostProcess postProcess, ID3D11S
 void PostProcessingScene::PolygonPostProcess()
 {
 	// First perform a full-screen copy of the scene to back-buffer
-	FullScreenPostProcess(PostProcess::Copy, m_Scenetexture->GetShaderResourceView());
+	FullScreenPostProcess(PostProcess::Copy, m_SceneTexture->GetShaderResourceView());
 	
 	//Select the shader required for the Saturation effect
 	SelectPostProcessShaderAndTextures(PostProcess::Saturation);
@@ -549,10 +585,10 @@ void PostProcessingScene::PolygonPostProcess()
 	gD3DContext->PSSetShaderResources(1, 1, &temporary);
 	
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
-	for (unsigned int i = 0; i < SpadeWindowPoints.size(); ++i)
+	for (unsigned int i = 0; i < m_SpadeWindowPoints.size(); ++i)
 	{
-		CVector4 modelPosition = CVector4(SpadeWindowPoints[i], 1);
-		CVector4 worldPosition = modelPosition * SpadeMatrix;
+		CVector4 modelPosition = CVector4(m_SpadeWindowPoints[i], 1);
+		CVector4 worldPosition = modelPosition * m_SpadeMatrix;
 		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
@@ -571,10 +607,10 @@ void PostProcessingScene::PolygonPostProcess()
 	SelectPostProcessShaderAndTextures(PostProcess::GreyNoise);
 
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
-	for (unsigned int i = 0; i < HeartWindowPoints.size(); ++i)
+	for (unsigned int i = 0; i < m_HeartWindowPoints.size(); ++i)
 	{
-		CVector4 modelPosition = CVector4(HeartWindowPoints[i], 1);
-		CVector4 worldPosition = modelPosition * HeartMatrix;
+		CVector4 modelPosition = CVector4(m_HeartWindowPoints[i], 1);
+		CVector4 worldPosition = modelPosition * m_HeartMatrix;
 		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
@@ -590,10 +626,10 @@ void PostProcessingScene::PolygonPostProcess()
 	SelectPostProcessShaderAndTextures(PostProcess::Vignette);
 
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
-	for (unsigned int i = 0; i < DiamondWindowPoints.size(); ++i)
+	for (unsigned int i = 0; i < m_DiamondWindowPoints.size(); ++i)
 	{
-		CVector4 modelPosition = CVector4(DiamondWindowPoints[i], 1);
-		CVector4 worldPosition = modelPosition * DiamondMatrix;
+		CVector4 modelPosition = CVector4(m_DiamondWindowPoints[i], 1);
+		CVector4 worldPosition = modelPosition * m_DiamondMatrix;
 		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
@@ -609,10 +645,10 @@ void PostProcessingScene::PolygonPostProcess()
 	SelectPostProcessShaderAndTextures(PostProcess::Distort);
 
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
-	for (unsigned int i = 0; i < CloverWindowPoints.size(); ++i)
+	for (unsigned int i = 0; i < m_CloverWindowPoints.size(); ++i)
 	{
-		CVector4 modelPosition = CVector4(CloverWindowPoints[i], 1);
-		CVector4 worldPosition = modelPosition * CloverMatrix;
+		CVector4 modelPosition = CVector4(m_CloverWindowPoints[i], 1);
+		CVector4 worldPosition = modelPosition * m_CloverMatrix;
 		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
@@ -627,14 +663,14 @@ void PostProcessingScene::PolygonPostProcess()
 	//Select the shader required for the Fisheye effect
 	//and the Fisheye texture to use in the shader
 	SelectPostProcessShaderAndTextures(PostProcess::Fisheye);
-	ID3D11ShaderResourceView* temp = m_SquareHolePostProcess->GetShaderResourceView();
+	ID3D11ShaderResourceView* temp = m_SquareHolePostProcessTexture->GetShaderResourceView();
 	gD3DContext->PSSetShaderResources(0, 1, &temp);
 	
 	// Loop through the given points, transform each to 2D (this is what the vertex shader normally does in most labs)
-	for (unsigned int i = 0; i < SquarePoints.size(); ++i)
+	for (unsigned int i = 0; i < m_SquarePoints.size(); ++i)
 	{
-		CVector4 modelPosition = CVector4(SquarePoints[i], 1);
-		CVector4 worldPosition = modelPosition * polyMatrix;
+		CVector4 modelPosition = CVector4(m_SquarePoints[i], 1);
+		CVector4 worldPosition = modelPosition * m_SquareMatrix;
 		CVector4 viewportPosition = worldPosition * MainCamera->ViewProjectionMatrix();
 
 		gPostProcessingConstants.polygon2DPoints[i] = viewportPosition;
@@ -661,6 +697,8 @@ void PostProcessingScene::RenderScene(float frameTime)
 	PerFrameConstants.light1Position = Lights[0].model->Position();
 	PerFrameConstants.light2Colour   = Lights[1].colour * Lights[1].strength;
 	PerFrameConstants.light2Position = Lights[1].model->Position();
+	PerFrameConstants.light3Colour	 = Lights[2].colour * Lights[2].strength;
+	PerFrameConstants.light3Position = Lights[2].model->Position();
 
 	PerFrameConstants.ambientColour  = gAmbientColour;
 	PerFrameConstants.specularPower  = gSpecularPower;
@@ -672,8 +710,8 @@ void PostProcessingScene::RenderScene(float frameTime)
 	//Check if a post-process is currently selected
 	if (CurrentPostProcess != PostProcess::None)
 	{
-		m_Scenetexture->SetRenderTarget(gD3DContext, gDepthStencil);
-		m_Scenetexture->ClearRenderTarget(gD3DContext, gBackgroundColor);
+		m_SceneTexture->SetRenderTarget(gD3DContext, gDepthStencil);
+		m_SceneTexture->ClearRenderTarget(gD3DContext, gBackgroundColor);
 	}
 	else
 	{
@@ -706,7 +744,7 @@ void PostProcessingScene::RenderScene(float frameTime)
 		if (CurrentPostProcessMode == PostProcessMode::Fullscreen)
 		{		
 			//Render the current post-processing effect to the screen
-			FullScreenPostProcess(CurrentPostProcess, m_Scenetexture->GetShaderResourceView());
+			FullScreenPostProcess(CurrentPostProcess, m_SceneTexture->GetShaderResourceView());
 		}
 
 		else if (CurrentPostProcessMode == PostProcessMode::Polygon)
@@ -715,12 +753,12 @@ void PostProcessingScene::RenderScene(float frameTime)
 			m_CameraTexture->SetRenderTarget(gD3DContext);
 			m_CameraTexture->ClearRenderTarget(gD3DContext, gBackgroundColor);
 
-			FisheyeCamera->SetPosition({ gWall1->Position().x, 10, gWall1->Position().z });
-			FisheyeCamera->SetRotation(CVector3(0.0f, ToRadians(90), 0.0f));
-			RenderSceneFromCamera(FisheyeCamera);
+			m_FisheyeCamera->SetPosition({ m_Wall1Model->Position().x, 10, m_Wall1Model->Position().z });
+			m_FisheyeCamera->SetRotation(CVector3(0.0f, ToRadians(90), 0.0f));
+			RenderSceneFromCamera(m_FisheyeCamera);
 			
 			//Use this new texture as the source for the post-processing of the fisheye polygon
-			m_SquareHolePostProcess->SetRenderTarget(gD3DContext, m_CameraTexture->GetDepthStencilView());
+			m_SquareHolePostProcessTexture->SetRenderTarget(gD3DContext, m_CameraTexture->GetDepthStencilView());
 			FirstRender(g2DQuadVertexShader);
 			SelectPostProcessShaderAndTextures(PostProcess::Fisheye);
 			ID3D11ShaderResourceView* temp = m_CameraTexture->GetShaderResourceView();
@@ -744,7 +782,7 @@ void PostProcessingScene::RenderScene(float frameTime)
 
 	// When drawing to the off-screen back buffer is complete, we "present" the image to the front buffer (the screen)
 	// Set first parameter to 1 to lock to vsync
-	gSwapChain->Present(lockFPS ? 1 : 0, 0);
+	gSwapChain->Present(m_LockFPS ? 1 : 0, 0);
 }
 
 // Update models and camera. frameTime is the time passed since the last frame
@@ -784,12 +822,12 @@ void PostProcessingScene::UpdateScene(float frameTime, HWND HWnd)
 	gPostProcessingConstants.BlurWidth = m_BlurOffset * 1.3;
 	
 	//Updating the vignette effects
-	gPostProcessingConstants.vignetteStrength = m_vignetteStrength;
-	gPostProcessingConstants.vignetteSize = m_vignetteSize;
-	gPostProcessingConstants.vignetteFalloff = m_vignetteFalloff;
+	gPostProcessingConstants.vignetteStrength = m_VignetteStrength;
+	gPostProcessingConstants.vignetteSize = m_VignetteSize;
+	gPostProcessingConstants.vignetteFalloff = m_VignetteFalloff;
 
 	//Updating the level of saturation used in the saturation effect
-	gPostProcessingConstants.SaturationLevel = saturationLevel;
+	gPostProcessingConstants.SaturationLevel = m_SaturationLevel;
 	static float wiggle = 0.0f;
 	const float wiggleSpeed = 1.0f;
 	wiggle += wiggleSpeed * frameTime;
@@ -808,7 +846,7 @@ void PostProcessingScene::UpdateScene(float frameTime, HWND HWnd)
 	MainCamera->Control(frameTime, Key_Up, Key_Down, Key_Left, Key_Right, Key_W, Key_S, Key_A, Key_D);
 
 	// Toggle FPS limiting
-	if (KeyHit(Key_P))  lockFPS = !lockFPS;
+	if (KeyHit(Key_P))  m_LockFPS = !m_LockFPS;
 
 	// Show frame time / FPS in the window title //
 	const float fpsUpdateTime = 0.5f; // How long between updates (in seconds)
@@ -835,7 +873,7 @@ void PostProcessingScene::UpdateScene(float frameTime, HWND HWnd)
 void PostProcessingScene::IMGUI()
 {
 	//Start an ImGui window
-	ImGui::Begin("Information", 0, windowFlags);
+	ImGui::Begin("Information", 0, m_WindowFlags);
 	
 	//Information about the camera's position and rotation
 	ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", MainCamera->Position().x, MainCamera->Position().y, MainCamera->Position().z);
@@ -844,7 +882,7 @@ void PostProcessingScene::IMGUI()
 	ImGui::Text("");
 
 	//Activate the post-processes for full-screen
-	if (ImGui::Button("(F1)Fullscreen", ButtonSize))
+	if (ImGui::Button("(F1)Fullscreen", m_ButtonSize))
 	{
 		CurrentPostProcessMode = PostProcessMode::Fullscreen;
 		CurrentPostProcess = PostProcess::Copy;
@@ -852,7 +890,7 @@ void PostProcessingScene::IMGUI()
 	ImGui::SameLine();
 	
 	//Activate all the processes for the windows in the walls
-	if (ImGui::Button("(F2)Polygon", ButtonSize))
+	if (ImGui::Button("(F2)Polygon", m_ButtonSize))
 	{
 		CurrentPostProcessMode = PostProcessMode::Polygon;
 		CurrentPostProcess = PostProcess::Copy;
@@ -860,7 +898,7 @@ void PostProcessingScene::IMGUI()
 	ImGui::Separator();
 	ImGui::Text("");
 	//Activate the Gradient effect when the button is pressed
-	if (ImGui::Button("(1)Gradient Effect", ButtonSize))
+	if (ImGui::Button("(1)Gradient Effect", m_ButtonSize))
 	{
 		CurrentPostProcess = PostProcess::Gradient;
 
@@ -868,14 +906,14 @@ void PostProcessingScene::IMGUI()
 	ImGui::SameLine();
 	
 	//Activate the Blur effect when the button is pressed
-	if (ImGui::Button("(2)Blur Effect", ButtonSize))
+	if (ImGui::Button("(2)Blur Effect", m_ButtonSize))
 	{
 		CurrentPostProcess = PostProcess::HorizontalBlur;
 
 	}
 
 	//Activate the Underwater effect when the button is pressed
-	if (ImGui::Button("(3)Underwater Effect", ButtonSize))
+	if (ImGui::Button("(3)Underwater Effect", m_ButtonSize))
 	{
 		CurrentPostProcess = PostProcess::Underwater;
 
@@ -883,7 +921,7 @@ void PostProcessingScene::IMGUI()
 	ImGui::SameLine();
 
 	//Activate the Gameboy effect when the button is pressed
-	if (ImGui::Button("(4)Gameboy Effect", ButtonSize))
+	if (ImGui::Button("(4)Gameboy Effect", m_ButtonSize))
 	{
 		CurrentPostProcess = PostProcess::Pixelation;
 
@@ -903,19 +941,19 @@ void PostProcessingScene::IMGUI()
 	
 	//Slider to update the Saturation post processing constants
 	ImGui::Text("");
-	ImGui::SliderFloat("Saturation Level", &saturationLevel, -1.0f, 50.0f);
+	ImGui::SliderFloat("Saturation Level", &m_SaturationLevel, -1.0f, 50.0f);
 	ImGui::Separator();
 
 	//Sliders to update the Vignette post processing constants
 	ImGui::Text("");
-	ImGui::SliderFloat("Vignette Strength", &m_vignetteStrength, 0.0f, 2.5f);
-	ImGui::SliderFloat("Vignette Size", &m_vignetteSize, 0.0f, 2.5f);
-	ImGui::SliderFloat("Vignette Falloff", &m_vignetteFalloff, 0.0f, 2.5f);
+	ImGui::SliderFloat("Vignette Strength", &m_VignetteStrength, 0.0f, 2.5f);
+	ImGui::SliderFloat("Vignette Size", &m_VignetteSize, 0.0f, 2.5f);
+	ImGui::SliderFloat("Vignette Falloff", &m_VignetteFalloff, 0.0f, 2.5f);
 	ImGui::Separator();
 
 	//Reset the current post process 
 	ImGui::Text("");
-	if (ImGui::Button("Reset Effects", ButtonSize))
+	if (ImGui::Button("Reset Effects", m_ButtonSize))
 	{
 		CurrentPostProcess = PostProcess::None;
 	}	

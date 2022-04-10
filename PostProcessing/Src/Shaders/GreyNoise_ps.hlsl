@@ -51,5 +51,5 @@ float4 main(PostProcessingInput input) : SV_Target
     }
     
 	// Output final colour
-    return float4(grey, grey, grey, alpha);
+    return float4(grey, grey, grey, 0.0f);
 }

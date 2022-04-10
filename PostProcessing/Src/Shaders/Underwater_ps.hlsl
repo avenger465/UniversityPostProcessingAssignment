@@ -31,7 +31,14 @@ float4 main(PostProcessingInput input) : SV_Target
 
 	// Get pixel from scene texture, offset using haze
     float3 UnderWaterColourTint = { 0.0f, 0.0f, 0.55f };
+	
     float3 colour = SceneTexture.Sample(PointSample, input.sceneUV + hazeOffset).rgb + UnderWaterColourTint;
+	
+	//Calculate the luminance value of the pixel's colour by performing a dot product between the pixel's colour and the and the luminance vector
+    float luminance = dot(colour.rgb, gLuminanceWeights);
+	
+	//Darken the pixel's colour by the amount of luminance
+    colour *= luminance;
 
 	return float4(colour, alpha);
 }

@@ -105,7 +105,7 @@ private:
 		CVector3 colour;
 		float    strength;
 	};
-	Light Lights[2];
+	Light Lights[3];
 
 //-------------------------------------
 // Private functions
@@ -128,72 +128,78 @@ private:
 // Private members
 //-------------------------------------
 private:
-	const int NUM_LIGHTS = 2;
-
-	// Dimensions of scene texture - controls quality of rendered scene
-	int textureWidth = 900;
-	int textureHeight = 900;
-
-	// Polygon points for all of the holes in the walls 
-	std::vector<CVector3> HeartWindowPoints = { { -5.5,5,0 }, { -5.5,-5,0 }, { 5.5,5,0 }, { 5.5,-5,0 } };
-	std::vector<CVector3> SpadeWindowPoints = { {-5.5,6,0}, {-5.5,-6,0}, {5.5,6,0}, {5.5,-6,0} };
-	std::vector<CVector3> DiamondWindowPoints = { {-1,4.65,0}, {-4.65,0,0}, {2.65,0,0}, {-1,-4.65,0} };
-	std::vector<CVector3> CloverWindowPoints = { {-5.5,5,0}, {-5.5,-5,0}, {5.5,5,0}, {5.5,-5,0} };
-	std::vector<CVector3> SquarePoints = { {-5,5,0}, {-5,-5,0}, {5,5,0}, {5,-5,0} };
-
-	//Textures available to be rendered to
-	CRenderTexture* m_Scenetexture;
-	CRenderTexture* m_SecondPasstexture;
-	CRenderTexture* m_CameraTexture;
-	CRenderTexture* m_SquareHolePostProcess;
-	CRenderTexture* m_HorizontalBlurTexture;
-	CRenderTexture* m_VerticalBlurTexture;
+	
+	const int NUM_LIGHTS = 3;
+	
+	// Variables controlling light1's orbiting of the cube
+	const float LightOrbitRadius = 20.0f;
+	const float LightOrbitSpeed = 0.7f;
 	
 	//Constants used in the post-processing effects
 	PostProcessingConstants gPostProcessingConstants;
 	ID3D11Buffer* PostProcessingConstantBuffer;
+	
+	// Dimensions of scene texture - controls quality of rendered scene
+	int m_TextureWidth = 900;
+	int m_TextureHeight = 900;
+
+	// Polygon points for all of the holes in the walls 
+	std::vector<CVector3> m_HeartWindowPoints = { { -5.5,5,0 }, { -5.5,-5,0 }, { 5.5,5,0 }, { 5.5,-5,0 } };
+	std::vector<CVector3> m_SpadeWindowPoints = { {-5.5,6,0}, {-5.5,-6,0}, {5.5,6,0}, {5.5,-6,0} };
+	std::vector<CVector3> m_DiamondWindowPoints = { {-1,4.65,0}, {-4.65,0,0}, {2.65,0,0}, {-1,-4.65,0} };
+	std::vector<CVector3> m_CloverWindowPoints = { {-7.5,7.5,0}, {-7.5,-7.5,0}, {7.5,7.5,0}, {7.5,-7.5,0} };
+	std::vector<CVector3> m_SquarePoints = { {-5,5,0}, {-5,-5,0}, {5,5,0}, {5,-5,0} };
+
+	//Textures available to be rendered to
+	CRenderTexture* m_SceneTexture;
+	CRenderTexture* m_SecondPassTexture;
+	CRenderTexture* m_CameraTexture;
+	CRenderTexture* m_SquareHolePostProcessTexture;
+	CRenderTexture* m_HorizontalBlurTexture;
+	CRenderTexture* m_VerticalBlurTexture;
+	
+	
 
 	//Models in the scene
-	Model* gStars;
-	Model* gGround;
-	Model* gCube;
-	Model* gWall1;
-	Model* gWall2;
+	Model* m_StarsModel;
+	Model* m_GroundModel;
+	Model* m_CubeModel;
+	Model* m_Wall1Model;
+	Model* m_Wall2Model;
+	Model* m_ContainerModel;
+	Model* m_TeapotModel;
+	Model* m_TrollModel;
 
 	//Matrices for all of the holes in the walls
-	CMatrix4x4 polyMatrix;
-	CMatrix4x4 HeartMatrix;
-	CMatrix4x4 SpadeMatrix;
-	CMatrix4x4 DiamondMatrix;
-	CMatrix4x4 CloverMatrix;
+	CMatrix4x4 m_SquareMatrix;
+	CMatrix4x4 m_HeartMatrix;
+	CMatrix4x4 m_SpadeMatrix;
+	CMatrix4x4 m_DiamondMatrix;
+	CMatrix4x4 m_CloverMatrix;
 
 	//Camera used to get the view of the Fisheye effect
-	Camera* FisheyeCamera;
+	Camera* m_FisheyeCamera;
 
 	//Standard size of the ImGui Button
-	ImVec2 ButtonSize = { 162, 20 };
+	ImVec2 m_ButtonSize = { 162, 20 };
 
 	// Lock FPS to monitor refresh rate, which will typically set it to 60fps. Press 'p' to toggle to full fps
-	bool lockFPS = true;
+	bool m_LockFPS = true;
 
 	//initial number of window flags for the ImGui Window
-	ImGuiWindowFlags windowFlags = 0;
-
-	// Variables controlling light1's orbiting of the cube
-	const float LightOrbitRadius = 20.0f;
-	const float LightOrbitSpeed = 0.7f;
+	ImGuiWindowFlags m_WindowFlags = 0;
 
 	//Variables for the gradient colours
-	CVector3 Colour1 = {0,0,1};
-	CVector3 Colour2 = {0,1,0};
+	CVector3 m_Colour1 = {0,0,1};
+	CVector3 m_Colour2 = {0,1,0};
 
 	//Variable for the saturation level in the saturation effect
-	float saturationLevel = 30.0f;
+	float m_SaturationLevel = 30.0f;
 	
 	//Variables to control the vignette effect
-	float m_vignetteStrength = 1.3f;
-	float m_vignetteSize = 0.6;
-	float m_vignetteFalloff = 0.25f;
+	float m_VignetteStrength = 1.3f;
+	float m_VignetteSize = 0.6;
+	float m_VignetteFalloff = 0.25f;
 
 	//Variable to control the pixelation effect
 	int m_PixelWidth = 64;

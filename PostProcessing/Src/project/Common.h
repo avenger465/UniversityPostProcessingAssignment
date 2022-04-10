@@ -63,11 +63,16 @@ struct PerFrameConstants
     CVector3   light2Colour;
     float      padding2;
 
+	CVector3   light3Position;
+	float      padding3;
+	CVector3   light3Colour;
+	float      padding4;
+
     CVector3   ambientColour;
     float      specularPower;
 
     CVector3   cameraPosition;
-	float      padding3;
+	float      padding5;
 };
 
 extern PerFrameConstants gPerFrameConstants;      // This variable holds the CPU-side constant buffer described above
