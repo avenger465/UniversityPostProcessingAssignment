@@ -25,11 +25,9 @@ ID3D11PixelShader*    gPixelLightingPixelShader   = nullptr;
 //*******************************
 //**** Post-processing shader DirectX objects
 // These are also added to Shader.h
-ID3D11VertexShader* g2DQuadWithHorizontalNeighboursVertexShader    = nullptr;
-ID3D11VertexShader* g2DQuadWithVerticalNeighboursVertexShader    = nullptr;
 ID3D11VertexShader* g2DPolygonVertexShader = nullptr;
 ID3D11PixelShader*  gCopyPostProcess       = nullptr;
-ID3D11PixelShader*  gTintPostProcess       = nullptr;
+ID3D11PixelShader*  gColourGradientPostProcess       = nullptr;
 ID3D11PixelShader*  gGreyNoisePostProcess  = nullptr;
 ID3D11PixelShader*  gDistortPostProcess    = nullptr;
 ID3D11PixelShader*  gSaturationPostProcess     = nullptr;
@@ -39,8 +37,7 @@ ID3D11PixelShader* gVignettePostProcess = nullptr;
 ID3D11PixelShader* gHorizontalBlurPostProcess = nullptr;
 ID3D11PixelShader* gVerticalBlurPostProcess = nullptr;
 
-ID3D11VertexShader* gFogVertexShader = nullptr;
-ID3D11PixelShader*  gFogPixelShader = nullptr;
+ID3D11VertexShader* g2DQuadVertexShader = nullptr;
 ID3D11PixelShader* gFishEyeShader = nullptr;
 
 
@@ -55,41 +52,37 @@ bool LoadShaders(std::string LastError)
 	// To load them for use, include them here without the extension. Use the correct function for each.
 	// Ensure you release the shaders in the ShutdownDirect3D function below
 	gBasicTransformVertexShader = LoadVertexShader("Src/Shaders/BasicTransform_vs");
-	gPixelLightingVertexShader = LoadVertexShader("Src/Shaders/PixelLighting_vs");
-	gTintedTexturePixelShader = LoadPixelShader("Src/Shaders/TintedTexture_ps");
-	gPixelLightingPixelShader = LoadPixelShader("Src/Shaders/PixelLighting_ps");
+	gPixelLightingVertexShader	= LoadVertexShader("Src/Shaders/PixelLighting_vs");
+	gTintedTexturePixelShader	= LoadPixelShader("Src/Shaders/TintedTexture_ps");
+	gPixelLightingPixelShader	= LoadPixelShader("Src/Shaders/PixelLighting_ps");
 
 	//***************************************
 	//**** Post processing shaders
 
-	g2DPolygonVertexShader = LoadVertexShader("Src/Shaders/2DPolygon_vs");
-	g2DQuadWithHorizontalNeighboursVertexShader = LoadVertexShader("Src/Shaders/2DQuadwithHorizontalNeighbours_vs");
-	g2DQuadWithVerticalNeighboursVertexShader = LoadVertexShader("Src/Shaders/2DQuadwithVerticalNeighbours_vs");
-	gCopyPostProcess = LoadPixelShader("Src/Shaders/Copy_ps");
-	gTintPostProcess = LoadPixelShader("Src/Shaders/Tint_ps");
-	gGreyNoisePostProcess = LoadPixelShader("Src/Shaders/GreyNoise_ps");
-	gDistortPostProcess = LoadPixelShader("Src/Shaders/Distort_ps");
-	gSaturationPostProcess = LoadPixelShader("Src/Shaders/Saturation_ps");
-	gUnderWaterPostProcess = LoadPixelShader("Src/Shaders/Underwater_ps");
-	gPixelationPostProcess = LoadPixelShader("Src/Shaders/Pixelation_ps");
-	gVignettePostProcess = LoadPixelShader("Src/Shaders/Vignette_ps");
+	g2DPolygonVertexShader	   = LoadVertexShader("Src/Shaders/2DPolygon_vs");
+	gCopyPostProcess		   = LoadPixelShader("Src/Shaders/Copy_ps");
+	gColourGradientPostProcess = LoadPixelShader("Src/Shaders/VerticalColourGradient_ps");
+	gGreyNoisePostProcess      = LoadPixelShader("Src/Shaders/GreyNoise_ps");
+	gDistortPostProcess		   = LoadPixelShader("Src/Shaders/Distort_ps");
+	gSaturationPostProcess	   = LoadPixelShader("Src/Shaders/Saturation_ps");
+	gUnderWaterPostProcess     = LoadPixelShader("Src/Shaders/Underwater_ps");
+	gPixelationPostProcess     = LoadPixelShader("Src/Shaders/Pixelation_ps");
+	gVignettePostProcess	   = LoadPixelShader("Src/Shaders/Vignette_ps");
 
-	gFogVertexShader = LoadVertexShader("Src/Shaders/Fog_vs");
-	gFogPixelShader = LoadPixelShader("Src/Shaders/Fog_ps");
+	g2DQuadVertexShader		   = LoadVertexShader("Src/Shaders/2DQuad_vs");
 	gHorizontalBlurPostProcess = LoadPixelShader("Src/Shaders/HorizontalBlur_ps");
-	gVerticalBlurPostProcess = LoadPixelShader("Src/Shaders/VerticalBlur_ps");
-	gFishEyeShader = LoadPixelShader("Src/Shaders/Fisheye_ps");
+	gVerticalBlurPostProcess   = LoadPixelShader("Src/Shaders/VerticalBlur_ps");
+	gFishEyeShader			   = LoadPixelShader("Src/Shaders/Fisheye_ps");
 
 	if (gBasicTransformVertexShader == nullptr || gPixelLightingVertexShader == nullptr ||
-		gTintedTexturePixelShader == nullptr || gPixelLightingPixelShader == nullptr ||
-		g2DQuadWithHorizontalNeighboursVertexShader == nullptr || gCopyPostProcess == nullptr ||
-		gTintPostProcess == nullptr || gUnderWaterPostProcess == nullptr ||
-		gGreyNoisePostProcess == nullptr || gFogVertexShader == nullptr ||
-		gDistortPostProcess         == nullptr || gSaturationPostProcess         == nullptr ||
-		g2DPolygonVertexShader      == nullptr || gPixelationPostProcess     == nullptr || 
-		gVignettePostProcess        == nullptr || gHorizontalBlurPostProcess           == nullptr ||
-		g2DQuadWithVerticalNeighboursVertexShader == nullptr || gFogPixelShader == nullptr ||
-		gFishEyeShader == nullptr || gVerticalBlurPostProcess == nullptr)
+		gTintedTexturePixelShader   == nullptr || gPixelLightingPixelShader  == nullptr || 
+		gCopyPostProcess		    == nullptr || gColourGradientPostProcess == nullptr ||
+		gUnderWaterPostProcess		== nullptr || gGreyNoisePostProcess		 == nullptr ||
+		g2DQuadVertexShader			== nullptr || gDistortPostProcess        == nullptr ||
+		gSaturationPostProcess      == nullptr || g2DPolygonVertexShader     == nullptr ||
+		gPixelationPostProcess      == nullptr || gVignettePostProcess       == nullptr ||
+		gHorizontalBlurPostProcess  == nullptr || gFishEyeShader			 == nullptr || 
+		gVerticalBlurPostProcess    == nullptr)
 	{
 		LastError = "Error loading shaders";
 		return false;
@@ -101,26 +94,23 @@ bool LoadShaders(std::string LastError)
 
 void ReleaseShaders()
 {
-	if (gUnderWaterPostProcess)					     gUnderWaterPostProcess       ->Release();
-	if (gSaturationPostProcess)						 gSaturationPostProcess         ->Release();
+	if (gUnderWaterPostProcess)					     gUnderWaterPostProcess     ->Release();
+	if (gSaturationPostProcess)						 gSaturationPostProcess     ->Release();
 	if (gDistortPostProcess)						 gDistortPostProcess        ->Release();
 	if (gGreyNoisePostProcess)					     gGreyNoisePostProcess      ->Release();
-	if (gTintPostProcess)					         gTintPostProcess           ->Release();
+	if (gColourGradientPostProcess)					 gColourGradientPostProcess ->Release();
 	if (gCopyPostProcess)							 gCopyPostProcess           ->Release();
 	if (g2DPolygonVertexShader)				         g2DPolygonVertexShader     ->Release();
-	if (g2DQuadWithHorizontalNeighboursVertexShader) g2DQuadWithHorizontalNeighboursVertexShader        ->Release();
-	if (g2DQuadWithVerticalNeighboursVertexShader)   g2DQuadWithVerticalNeighboursVertexShader->Release();
 	if (gPixelLightingPixelShader)					 gPixelLightingPixelShader  ->Release();
 	if (gTintedTexturePixelShader)					 gTintedTexturePixelShader  ->Release();
 	if (gPixelLightingVertexShader)					 gPixelLightingVertexShader ->Release();
 	if (gBasicTransformVertexShader)				 gBasicTransformVertexShader->Release();
-	if (gPixelationPostProcess) 					 gPixelationPostProcess->Release();
-	if (gVignettePostProcess) 						 gVignettePostProcess->Release();
-	if (gHorizontalBlurPostProcess) 							 gHorizontalBlurPostProcess->Release();
-	if (gFogVertexShader) 							 gFogVertexShader->Release();
-	if (gFogPixelShader) 							 gFogPixelShader->Release();
-	if (gFishEyeShader) 							 gFishEyeShader->Release();
-	if (gVerticalBlurPostProcess) gVerticalBlurPostProcess->Release();
+	if (gPixelationPostProcess) 					 gPixelationPostProcess		->Release();
+	if (gVignettePostProcess) 						 gVignettePostProcess		->Release();
+	if (gHorizontalBlurPostProcess) 				 gHorizontalBlurPostProcess ->Release();
+	if (g2DQuadVertexShader) 						 g2DQuadVertexShader		->Release();
+	if (gFishEyeShader) 							 gFishEyeShader				->Release();
+	if (gVerticalBlurPostProcess)					 gVerticalBlurPostProcess	->Release();
 }
 
 

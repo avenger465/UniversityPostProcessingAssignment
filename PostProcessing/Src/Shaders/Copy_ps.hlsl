@@ -27,5 +27,5 @@ float4 main(PostProcessingInput input) : SV_Target
 	float3 colour = SceneTexture.Sample(PointSample, input.sceneUV).rgb;
 	
 	// Got the RGB from the scene texture, set alpha to 1 for final output
-	return float4(colour, 1.0f);
+    return float4(colour, gFeedback);
 }

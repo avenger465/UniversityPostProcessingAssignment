@@ -184,10 +184,7 @@
     <FxCompile Include="Src\Shaders\2DPolygon_vs.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\2DQuadwithHorizontalNeighbours_vs.hlsl">
-      <Filter>Src\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\2DQuadwithVerticalNeighbours_vs.hlsl">
+    <FxCompile Include="Src\Shaders\2DQuad_vs.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\BasicTransform_vs.hlsl">
@@ -200,12 +197,6 @@
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\Fisheye_ps.hlsl">
-      <Filter>Src\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\Fog_ps.hlsl">
-      <Filter>Src\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\Fog_vs.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\GreyNoise_ps.hlsl">
@@ -226,9 +217,6 @@
     <FxCompile Include="Src\Shaders\Saturation_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\Tint_ps.hlsl">
-      <Filter>Src\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Src\Shaders\TintedTexture_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
@@ -236,6 +224,9 @@
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\VerticalBlur_ps.hlsl">
+      <Filter>Src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\VerticalColourGradient_ps.hlsl">
       <Filter>Src\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Src\Shaders\Vignette_ps.hlsl">

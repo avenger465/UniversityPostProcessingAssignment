@@ -1,8 +1,3 @@
-//--------------------------------------------------------------------------------------
-// Colour Tint Post-Processing Pixel Shader
-//--------------------------------------------------------------------------------------
-// Just samples a pixel from the scene texture and multiplies it by a fixed colour to tint the scene
-
 #include "Common.hlsli"
 
 //--------------------------------------------------------------------------------------
@@ -18,42 +13,53 @@ SamplerState PointSample  : register(s0); // We don't usually want to filter (bi
 // Shader code
 //--------------------------------------------------------------------------------------
 
-float Min(float x, float y)
-{
-    return min(x, y);
-}
-float Max(float x, float y)
-{
-    return max(x, y);
-}
-
 float3 HUEtoRGB(float hue)
 {
+    //returns the decimal part of the input
     hue = frac(hue);
+    
+    //get the indivual RGB components from the Hue Component
     float r = abs(hue * 6 - 3) - 1;
     float g = 2 - abs(hue * 6 - 2);
     float b = 2 - abs(hue * 6 - 4);
 
+    //Convert the RGB values to the range 0-1
     float3 rgb = float3(r, g, b);
     rgb = saturate(rgb);
+    
+    //Return the RGB values
     return rgb;
 
 }
 
 float3 HSLtoRGB(float3 HSL)
 {
+    //Return the RGB value from the Hue compoment of the HSL color
     float3 rgb = HUEtoRGB(HSL.x);
+    
+    //Linear interpolate between 1 and the RGB value along the Saturation component of the HSL color
     rgb = lerp(1, rgb, HSL.y);
+    
+    //Multiply the RGB value by the Lightness component of the HSL color
     rgb = rgb * HSL.z;
+    
+    //Return the final colour
     return rgb;
 }
 
 float3 RGBtoHSL(float3 RGB)
 {
-    float maxComponent = Max(RGB.r, Max(RGB.g, RGB.b));
-    float minComponent = Min(RGB.r, Min(RGB.g, RGB.b));
+    //The maximum and minimum RGB values
+    float maxComponent = max(RGB.r, max(RGB.g, RGB.b));
+    float minComponent = min(RGB.r, min(RGB.g, RGB.b));
+    
+    //range
     float diff = maxComponent - minComponent;
+    
+    //initialise Hue
     float hue = 0;
+    
+    //Calculate the Hue value based on the maxComponent
     if (maxComponent == RGB.r)
     {
         hue = 0 + (RGB.g - RGB.b) / diff;
@@ -66,10 +72,17 @@ float3 RGBtoHSL(float3 RGB)
     {
         hue = 4 + (RGB.r - RGB.g) / diff;
     }
+    
+    //Convert the Hue value to degrees
     hue = frac(hue / 6);
 
+    //Calculate the saturation value
     float saturation = diff / maxComponent;
+    
+    //Calculate the lightness value
     float value = maxComponent;
+    
+    //Return the HSL values
     return float3(hue, saturation, value);
  
 }
@@ -77,19 +90,21 @@ float3 RGBtoHSL(float3 RGB)
 // Post-processing shader that tints the scene texture to a given colour
 float4 main(PostProcessingInput input) : SV_Target
 {
-	// Sample a pixel from the scene texture and multiply it with the tint colour (comes from a constant buffer defined in Common.hlsli)
+	// Sample the colour from the scene texture 
 	float3 colour = SceneTexture.Sample(PointSample, input.sceneUV).rgb;
-    //float3 Colour1 = RGBtoHSL(gTintColour1);
-    //float3 Colour2 = RGBtoHSL(gTintColour2);
 
+    //Linear interpolate between the two colours along the y axis and add it to the Colour of the scene
     colour += lerp(gTintColour1, gTintColour2, input.sceneUV.y);
+    
+    //Convert the colour to HSL
     float3 FinalColour = RGBtoHSL(colour);
     
-    FinalColour.x += gHeatHazeTimer / 10;
+    //Multiply the hue value of the colour to produce a gradually changing colour
+    FinalColour.x += gUnderwaterEffect / 10;
     
+    //Convert the colour back to RGB
     FinalColour = HSLtoRGB(FinalColour);
     
-    
-	
+    //Return the final colour
 	return float4(FinalColour, 1.0f);
 }

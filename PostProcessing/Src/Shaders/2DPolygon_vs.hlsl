@@ -15,9 +15,9 @@
 // This post-processing vertex shader expects that the C++ side will have already done all the matrix transformations for a four
 // point polygon and passed the resultant four points via a constant buffer (rather than via the usual vertex buffer).
 // A more flexible polygon post-procssing system would have vertex and index buffers etc. However for one-off effects (e.g. a frosted window), this is sufficient.
-PostProcessingInputWithNeighbouringPixels main(uint vertexId : SV_VertexID)
+PostProcessingInput main(uint vertexId : SV_VertexID)
 {
-    PostProcessingInputWithNeighbouringPixels output; // Defined in Common.hlsi
+    PostProcessingInput output; // Defined in Common.hlsi
 
 	// The four points of the polygon come from the C++ side. The shader gives the polygon fixed UVs
 	const float2 polygonUVs[4] = { float2(0.0, 0.0),   // Top-left
@@ -32,20 +32,7 @@ PostProcessingInputWithNeighbouringPixels main(uint vertexId : SV_VertexID)
 	output.areaUV = polygonUVs[vertexId];
 	output.sceneUV = (output.projectedPosition.xy / output.projectedPosition.w + 1.0f) * 0.5f;
 	
-	
-	output.sceneUV.y = 1.0f - output.sceneUV.y;
-    float texelSize = 1.0f / gViewportWidth;
 
-    // Create UV coordinates for the pixel and its four horizontal neighbors on either side.
-    output.texCoord1 = output.sceneUV + float2(texelSize * -4.0f, 0.0f);
-    output.texCoord2 = output.sceneUV + float2(texelSize * -3.0f, 0.0f);
-    output.texCoord3 = output.sceneUV + float2(texelSize * -2.0f, 0.0f);
-    output.texCoord4 = output.sceneUV + float2(texelSize * -1.0f, 0.0f);
-    output.texCoord5 = output.sceneUV + float2(texelSize * 0.0f, 0.0f);
-    output.texCoord6 = output.sceneUV + float2(texelSize * 1.0f, 0.0f);
-    output.texCoord7 = output.sceneUV + float2(texelSize * 2.0f, 0.0f);
-    output.texCoord8 = output.sceneUV + float2(texelSize * 3.0f, 0.0f);
-    output.texCoord9 = output.sceneUV + float2(texelSize * 4.0f, 0.0f);
-
+	output.sceneUV.y = 1.0f - output.sceneUV.y; // Invert Y axis so that 0,0 is top-left
 	return output;
 }

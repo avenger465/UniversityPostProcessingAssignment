@@ -1,6 +1,5 @@
 #include "project/Common.h"
 #include "BasicScene/Camera.h"
-#include "BasicScene/CLight.h"
 #include "Utility/Input.h"
 #include "Data/Mesh.h"
 #include "Data/Model.h"
@@ -9,7 +8,6 @@
 
 #include "Utility/ColourRGBA.h"
 #include "Utility/CResourceManager.h"
-
 #include "Math/CVector3.h"
 #include "Math/CVector4.h"
 
@@ -18,7 +16,6 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
-
 
 #pragma once
 class BaseScene
@@ -52,6 +49,12 @@ public:
 	//Function to contain all of the ImGui code
 	virtual void IMGUI() = 0;
 
+	//Function to create rendering textures
+	virtual bool CreateRenderTextures(std::string& LastError) = 0;
+
+//-------------------------------------
+// protected members
+//-------------------------------------
 protected:
 
 	PerFrameConstants PerFrameConstants;
@@ -63,14 +66,6 @@ protected:
 	CResourceManager* resourceManager;
 	Camera* MainCamera;
 	Model* GroundModel;
-
-	//-------------------//
-	// Light Information //
-	//-------------------//
-	//CLight* Light;
-	//float LightScale = 15000.0f;
-	//CVector3 LightColour = { 0.9922f, 0.7217f, 0.0745f };
-	//CVector3 LightPosition = { 5000.0f, 13000.0f, 5000.0f };
 
 	// Additional light information
 	CVector3 gAmbientColour = { 0.3f, 0.3f, 0.4f }; // Background level of light (slightly bluish to match the far background, which is dark blue)

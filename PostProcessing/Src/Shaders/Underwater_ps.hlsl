@@ -1,10 +1,4 @@
-//--------------------------------------------------------------------------------------
-// Colour Tint Post-Processing Pixel Shader
-//--------------------------------------------------------------------------------------
-// Just samples a pixel from the scene texture and multiplies it by a fixed colour to tint the scene
-
 #include "Common.hlsli"
-
 
 //--------------------------------------------------------------------------------------
 // Textures (texture maps)
@@ -12,9 +6,7 @@
 
 // The scene has been rendered to a texture, these variables allow access to that texture
 Texture2D    SceneTexture : register(t0);
-SamplerState PointSample  : register(s0); // We don't usually want to filter (bilinear, trilinear etc.) the scene texture when
-                                          // post-processing so this sampler will use "point sampling" - no filtering
-
+SamplerState PointSample  : register(s0);
 
 //--------------------------------------------------------------------------------------
 // Shader code
@@ -25,7 +17,6 @@ float4 main(PostProcessingInput input) : SV_Target
 {
 	const float effectStrength = 0.015f;
 	
-
 	// Calculate alpha to display the effect in a softened circle, could use a texture rather than calculations for the same task.
 	// Uses the second set of area texture coordinates, which range from (0,0) to (1,1) over the area being processed
 	const float softEdge = 0.15f; // Softness of the edge of the circle - range 0.001 (hard edge) to 0.25 (very soft)
@@ -34,8 +25,8 @@ float4 main(PostProcessingInput input) : SV_Target
     float alpha = 0;
 
 	// Haze is a combination of sine waves in x and y dimensions
-	float SinX = sin(input.areaUV.x * radians(250.0f) + gHeatHazeTimer * 4.0f);
-	float SinY = sin(input.areaUV.y * radians(250.0f) + gHeatHazeTimer * 4.0f);
+	float SinX = sin(input.areaUV.x * radians(250.0f) + gUnderwaterEffect * 4.0f);
+    float SinY = sin(input.areaUV.y * radians(250.0f) + gUnderwaterEffect * 4.0f);
 	
 	// Offset for scene texture UV based on haze effect
 	// Adjust size of UV offset based on the constant EffectStrength, the overall size of area being processed, and the alpha value calculated above

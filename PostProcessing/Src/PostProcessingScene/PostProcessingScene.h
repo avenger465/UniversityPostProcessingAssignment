@@ -16,6 +16,7 @@ class PostProcessingScene : public BaseScene
 public:
 
 	PostProcessingScene(int width, int height);
+	
 	//Function to setup all the geometry to be used in the scene
 	virtual bool InitGeometry(std::string& LastError) override;
 
@@ -28,10 +29,6 @@ public:
 	//Function to render scene from the Camera's perspective
 	virtual void RenderSceneFromCamera(Camera* camera) override;
 
-	//--------------------------------------------------------------------------------------
-	// Scene Render and Update
-	//--------------------------------------------------------------------------------------
-
 	//Function to render the scene, called every frame
 	virtual void RenderScene(float frameTime) override;
 
@@ -41,24 +38,30 @@ public:
 	//Function to contain all of the ImGui code
 	virtual void IMGUI() override;
 
+	//Function to create rendering textures
+	virtual bool CreateRenderTextures(std::string& LastError) override;
+
 public:
 	int m_ViewportWidth;
 	int m_ViewportHeight;
 	
 
+//-------------------------------------
+// Private members
+//-------------------------------------	
 private: 
+	
+	//class of post-processes
 	enum class PostProcess
 	{
 		None,
 		Copy,
 		Gradient,
-
-		
+	
 		HorizontalBlur,
 		VerticalBlur,
-
 		Fisheye,
-		Fog,
+		GreyNoise,
 		Distort,
 		Saturation,
 		Underwater,
@@ -67,6 +70,7 @@ private:
 	};
 	PostProcess CurrentPostProcess = PostProcess::Copy;
 
+	//class of post-process modes
 	enum class PostProcessMode
 	{
 		Fullscreen,
@@ -103,59 +107,69 @@ private:
 	};
 	Light Lights[2];
 
+//-------------------------------------
+// Private functions
+//-------------------------------------	
 private:
-	void PolygonPostProcess(PostProcess postProcess, std::vector<CVector3>& points, const CMatrix4x4& worldMatrix, Camera* camera, ID3D11ShaderResourceView* renderResource);
+	
+	//Post-process rendering to a polygon
+	void PolygonPostProcess();
 
+	//return the correct shader based on the post-process
 	void SelectPostProcessShaderAndTextures(PostProcess postProcess);
 
+	//Post-process rendering full-screen
 	void FullScreenPostProcess(PostProcess postProcess, ID3D11ShaderResourceView* renderResource);
 
-	void FirstRender();
-
-
-
+	//Common rendering settings when rendering a post-process
+	void FirstRender(ID3D11VertexShader* VertexShader);
+	
+//-------------------------------------
+// Private members
+//-------------------------------------
 private:
-	//****************************
-// Post processing textures
 	const int NUM_LIGHTS = 2;
 
 	// Dimensions of scene texture - controls quality of rendered scene
 	int textureWidth = 900;
 	int textureHeight = 900;
 
-	std::vector<CVector3> HeartWindowPoints = { { -4.5,5,0 }, { -4.5,-5,0 }, { 4.5,5,0 }, { 4.5,-5,0 } };
-	std::vector<CVector3> SpadeWindowPoints = { {-4.5,5,0}, {-4.5,-5,0}, {4.5,5,0}, {4.5,-5,0} };
-	std::vector<CVector3> DiamondWindowPoints = { {-3,3,0}, {-4,-4,0}, {4,4,0}, {3,-3,0} };
-	std::vector<CVector3> CloverWindowPoints = { {-4.5,5,0}, {-4.5,-5,0}, {4.5,5,0}, {4.5,-5,0} };
+	// Polygon points for all of the holes in the walls 
+	std::vector<CVector3> HeartWindowPoints = { { -5.5,5,0 }, { -5.5,-5,0 }, { 5.5,5,0 }, { 5.5,-5,0 } };
+	std::vector<CVector3> SpadeWindowPoints = { {-5.5,6,0}, {-5.5,-6,0}, {5.5,6,0}, {5.5,-6,0} };
+	std::vector<CVector3> DiamondWindowPoints = { {-1,4.65,0}, {-4.65,0,0}, {2.65,0,0}, {-1,-4.65,0} };
+	std::vector<CVector3> CloverWindowPoints = { {-5.5,5,0}, {-5.5,-5,0}, {5.5,5,0}, {5.5,-5,0} };
 	std::vector<CVector3> SquarePoints = { {-5,5,0}, {-5,-5,0}, {5,5,0}, {5,-5,0} };
 
-	CRenderTexture *m_Scenetexture;
-	CRenderTexture *m_SecondPasstexture;
-	CRenderTexture *m_DownSampledtexture;
+	//Textures available to be rendered to
+	CRenderTexture* m_Scenetexture;
+	CRenderTexture* m_SecondPasstexture;
+	CRenderTexture* m_CameraTexture;
+	CRenderTexture* m_SquareHolePostProcess;
 	CRenderTexture* m_HorizontalBlurTexture;
 	CRenderTexture* m_VerticalBlurTexture;
 	
+	//Constants used in the post-processing effects
 	PostProcessingConstants gPostProcessingConstants;
 	ID3D11Buffer* PostProcessingConstantBuffer;
 
-	// Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
+	//Models in the scene
 	Model* gStars;
 	Model* gGround;
 	Model* gCube;
 	Model* gWall1;
 	Model* gWall2;
 
+	//Matrices for all of the holes in the walls
 	CMatrix4x4 polyMatrix;
 	CMatrix4x4 HeartMatrix;
 	CMatrix4x4 SpadeMatrix;
 	CMatrix4x4 DiamondMatrix;
 	CMatrix4x4 CloverMatrix;
 
-	Camera* polyCamera;
-	Camera* HeartCamera;
-	Camera* SpadeCamera;
-	Camera* DiamondCamera;
-	Camera* CloverCamera;
+	//Camera used to get the view of the Fisheye effect
+	Camera* FisheyeCamera;
+
 	//Standard size of the ImGui Button
 	ImVec2 ButtonSize = { 162, 20 };
 
@@ -164,31 +178,28 @@ private:
 
 	//initial number of window flags for the ImGui Window
 	ImGuiWindowFlags windowFlags = 0;
-	float wi = 0;
 
 	// Variables controlling light1's orbiting of the cube
 	const float LightOrbitRadius = 20.0f;
 	const float LightOrbitSpeed = 0.7f;
 
-	const float rwgt = 0.3086f;
-	const float gwgt = 0.6094f;
-	const float bwgt = 0.0820f;
-
+	//Variables for the gradient colours
 	CVector3 Colour1 = {0,0,1};
 	CVector3 Colour2 = {0,1,0};
 
+	//Variable for the saturation level in the saturation effect
 	float saturationLevel = 30.0f;
+	
+	//Variables to control the vignette effect
 	float m_vignetteStrength = 1.3f;
 	float m_vignetteSize = 0.6;
 	float m_vignetteFalloff = 0.25f;
-	bool postProcessing = false;
-	float postProcessingTimer = 0.0f;
 
+	//Variable to control the pixelation effect
 	int m_PixelWidth = 64;
-	int m_PixelHeight = 64;
 
-	int m_BlurOffset = 700;
-	int m_NumberOfFullscreenEffects = 0;
-	
-	std::vector<PostProcess> m_ListOfEffects;
+	//Variable to control the Blue effect
+	int m_BlurOffset = 600;
+
+	float m_Feedback = 0.5f;
 };

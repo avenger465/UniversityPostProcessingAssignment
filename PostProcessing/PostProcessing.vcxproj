@@ -156,14 +156,9 @@
       <ObjectFileOutput>Src/Shaders/2DPolygon_vs.cso</ObjectFileOutput>
       <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\2DQuadwithHorizontalNeighbours_vs.hlsl">
+    <FxCompile Include="Src\Shaders\2DQuad_vs.hlsl">
       <ShaderType>Vertex</ShaderType>
-      <ObjectFileOutput>Src/Shaders/2DQuadwithHorizontalNeighbours_vs.cso</ObjectFileOutput>
-      <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\2DQuadwithVerticalNeighbours_vs.hlsl">
-      <ShaderType>Vertex</ShaderType>
-      <ObjectFileOutput>Src/Shaders/2DQuadwithVerticalNeighbours_vs.cso</ObjectFileOutput>
+      <ObjectFileOutput>Src/Shaders/2DQuad_vs.cso</ObjectFileOutput>
       <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
     </FxCompile>
     <FxCompile Include="Src\Shaders\BasicTransform_vs.hlsl">
@@ -182,15 +177,6 @@
     <FxCompile Include="Src\Shaders\Fisheye_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
       <ObjectFileOutput>Src/Shaders/Fisheye_ps.cso</ObjectFileOutput>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\Fog_ps.hlsl">
-      <ShaderType>Pixel</ShaderType>
-      <ObjectFileOutput>Src/Shaders/Fog_ps.cso</ObjectFileOutput>
-    </FxCompile>
-    <FxCompile Include="Src\Shaders\Fog_vs.hlsl">
-      <ShaderType>Vertex</ShaderType>
-      <ObjectFileOutput>Src/Shaders/Fog_vs.cso</ObjectFileOutput>
-      <AdditionalOptions>/WX %(AdditionalOptions)</AdditionalOptions>
     </FxCompile>
     <FxCompile Include="Src\Shaders\GreyNoise_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
@@ -217,10 +203,6 @@
       <ShaderType>Pixel</ShaderType>
       <ObjectFileOutput>Src/Shaders/Saturation_ps.cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="Src\Shaders\Tint_ps.hlsl">
-      <ShaderType>Pixel</ShaderType>
-      <ObjectFileOutput>Src/Shaders/Tint_ps.cso</ObjectFileOutput>
-    </FxCompile>
     <FxCompile Include="Src\Shaders\TintedTexture_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
       <ObjectFileOutput>Src/Shaders/TintedTexture_ps.cso</ObjectFileOutput>
@@ -232,6 +214,10 @@
     <FxCompile Include="Src\Shaders\VerticalBlur_ps.hlsl">
       <ShaderType>Pixel</ShaderType>
       <ObjectFileOutput>Src/Shaders/VerticalBlur_ps.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Src\Shaders\VerticalColourGradient_ps.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>Src/Shaders/VerticalColourGradient_ps.cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="Src\Shaders\Vignette_ps.hlsl">
       <ShaderType>Pixel</ShaderType>

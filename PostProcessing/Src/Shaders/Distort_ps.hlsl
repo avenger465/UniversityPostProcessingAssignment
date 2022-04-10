@@ -19,14 +19,15 @@ SamplerState PointSample  : register(s0); // We don't usually want to filter (bi
 Texture2D    DistortMap    : register(t1);
 SamplerState TrilinearWrap : register(s1);
 
-
+//Texture that will be used with alpha blending to cut out the shape of the hole in the wall
+Texture2D AlphaMap : register(t2);
 
 //--------------------------------------------------------------------------------------
 // Shader code
 //--------------------------------------------------------------------------------------
 
 // Post-processing shader that tints the scene texture to a given colour
-float4 main(PostProcessingInputWithNeighbouringPixels input) : SV_Target
+float4 main(PostProcessingInput input) : SV_Target
 {
 	const float lightStrength = 0.015f;
 	const float glassDarken = 0.8f;
@@ -46,6 +47,17 @@ float4 main(PostProcessingInputWithNeighbouringPixels input) : SV_Target
 	// Get final colour by adding fake light colour plus scene texture sampled with distort texture offset
 	float3 outputColour = light + SceneTexture.Sample(PointSample, input.sceneUV + gDistortLevel * distortVector).rgb * glassDarken;
 
+	//get the colour value of the alpha map
+    float alpha = AlphaMap.Sample(TrilinearWrap, input.areaUV).r;
+	
+	//if the value is greater than 0.1, then we want to cut out the shape of the hole in the wall
+	//by discarding this pixel
+    if (alpha > 0.1f)
+    {
+        discard;
+    }
+    
+	//Return the final colour of the pixel
     return float4( outputColour, 1.0f );
 
 }

@@ -103,7 +103,7 @@ struct PostProcessingConstants
 	float  area2DDepth;   // Depth buffer value for area (0.0 nearest to 1.0 furthest). Full screen post-processing uses 0.0f
 	float  PixelWidth;
 	float  PixelHeight;
-	float  paddingA;
+	float  Feedback;
       // Pad things to collections of 4 floats (see notes in earlier labs to read about padding)
 
 	CVector4 polygon2DPoints[4]; // Four points of a polygon in 2D viewport space for polygon post-processing. Matrix transformations already done on C++ side
@@ -116,22 +116,23 @@ struct PostProcessingConstants
     CVector2 noiseScale;
 	CVector2 noiseOffset;
 
-	// Burn post-process settings
+	// Blur post-process settings
 	float    BlurHeight;
 	CVector3 tintColour2;
 
 	// Distort post-process settings
 	float    distortLevel;
-	CVector3 paddingC;
+	CVector3 LuminanceWeights;
 
-	// Spiral post-process settings
+	// Saturation post-process settings
 	float SaturationLevel;
 	CVector3 paddingD;
 
-	// Heat haze post-process settings
-	float    heatHazeTimer;
+	// Underwater post-process settings
+	float    UnderwaterEffect;
 	CVector3 paddingE;
 	
+	// Vignette post-process settings	
 	float    vignetteStrength;
 	float	 vignetteSize;
 	float	 vignetteFalloff;

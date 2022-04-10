@@ -3,7 +3,6 @@
 //--------------------------------------------------------------------------------------
 // Using include files to define the type of data passed between the shaders
 
-
 //--------------------------------------------------------------------------------------
 // Shader input / output
 //--------------------------------------------------------------------------------------
@@ -15,8 +14,6 @@ struct BasicVertex
     float3 normal   : normal;
     float2 uv       : uv;
 };
-
-
 
 // This structure describes what data the lighting pixel shader receives from the vertex shader.
 // The projected position is a required output from all vertex shaders - where the vertex is on the screen
@@ -36,7 +33,6 @@ struct LightingPixelShaderInput
     float2 uv : uv; // UVs are texture coordinates. The artist specifies for every vertex which point on the texture is "pinned" to that vertex.
 };
 
-
 // This structure is similar to the one above but for the light models, which aren't themselves lit
 struct SimplePixelShaderInput
 {
@@ -44,40 +40,19 @@ struct SimplePixelShaderInput
     float2 uv                : uv;
 };
 
-
-
 //**************************
 
 // The vertex data received by each post-process shader. Just the 2d projected position (pixel coordinate on screen), 
 // and two sets of UVs - one for accessing the texture showing the scene, one refering to the area being affected (see the 2DQuad_pp.hlsl file for diagram & details)
-struct PostProcessingInputWithNeighbouringPixels
-{
-	float4 projectedPosition     : SV_Position;
-	noperspective float2 sceneUV : sceneUV;      // "noperspective" is needed for polygon processing or the sampling of the scene texture doesn't work correctly (ask tutor if you are interested)
-	float2 areaUV                : areaUV;
-    //float2 tex : TEXCOORD0;
-    float2 texCoord1 : TEXCOORD1;
-    float2 texCoord2 : TEXCOORD2;
-    float2 texCoord3 : TEXCOORD3;
-    float2 texCoord4 : TEXCOORD4;
-    float2 texCoord5 : TEXCOORD5;
-    float2 texCoord6 : TEXCOORD6;
-    float2 texCoord7 : TEXCOORD7;
-    float2 texCoord8 : TEXCOORD8;
-    float2 texCoord9 : TEXCOORD9;
-};
 
 struct PostProcessingInput
 {
     float4 projectedPosition : SV_Position;
     noperspective float2 sceneUV : sceneUV;
     float2 areaUV : areaUV;
-    //float FogFactor : FOG;
 };
 
 //**************************
-
-
 
 //--------------------------------------------------------------------------------------
 // Constant Buffers
@@ -126,7 +101,6 @@ cbuffer PerModelConstants : register(b1) // The b1 gives this constant buffer th
 	float    gExplodeAmount; // Used in the geometry shader to control how much the polygons are exploded outwards
 }
 
-
 //**************************
 
 // This is where we receive post-processing settings from the C++ side
@@ -140,9 +114,7 @@ cbuffer PostProcessingConstants : register(b1)
     float  gArea2DDepth;   // Depth buffer value for area (0.0 nearest to 1.0 furthest). Full screen post-processing uses 0.0f
 	float  gPixelWidth;       // Pad things to collections of 4 floats (see notes in earlier labs to read about padding)
     float  gPixelHeight;
-    float  paddingA;
-
-
+    float  gFeedback;
     
   	float4 gPolygon2DPoints[4]; // Four points of a polygon in 2D viewport space for polygon post-processing. Matrix transformations already done on C++ side  
     
@@ -154,32 +126,32 @@ cbuffer PostProcessingConstants : register(b1)
     float2 gNoiseScale;
 	float2 gNoiseOffset;
 
-	// Burn post-process settings
+	// Blur post-process settings
 	float  gBlurHeight;
 	float3 gTintColour2;
 
 	// Distort post-process settings
 	float  gDistortLevel;
-	float3 paddingC;
+	float3 gLuminanceWeights;
 
-	// Spiral post-process settings
-	//float4x4 gTransformMatrix;
+	// Saturation post-process settings
     float saturationLevel;
     float3 paddingD;
 
-
-	// Heat haze post-process settings
-	float  gHeatHazeTimer;
+	// Underwater post-process settings
+    float gUnderwaterEffect;
 	float3 paddingE;
     
+    // Vignette post-process settings
     float gVignetteStrength;
     float gVignetteSize;
     float gVignetteFalloff;
+    
+    // Blur post-process settings
     float gBlurOffset;
 
     float Epsilon;
     float3 paddingG;
 }
-
 //**************************
 

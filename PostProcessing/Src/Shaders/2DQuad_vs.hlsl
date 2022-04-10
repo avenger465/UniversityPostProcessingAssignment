@@ -28,27 +28,5 @@ PostProcessingInput main( uint vertexId : SV_VertexID )
     output.sceneUV = areaCoord; // These UVs refer to the scene texture (see diagram below)
     output.projectedPosition = float4(screenCoord, gArea2DDepth, 1);
     
-    
- //   const float2 polygonUVs[4] =
- //   {
- //       float2(0.0, 0.0), // Top-left
-	//				               float2(0.0, 1.0), // Bottom-left
-	//					           float2(1.0, 0.0), // Top-right
-	//					           float2(1.0, 1.0)
- //   }; // Bottom-left
-
-	//// The post-processing shaders expect the points of the polygon (came from C++), the UVs for the area to affect (in the array above)...
-	//// ... and the UVs of which part of the scene texture is getting affected. We don't have that yet but it can be caclulated from the...
-	//// ... x and y coordinates of the polygon points
- //   output.projectedPosition = gPolygon2DPoints[vertexId];
- //   output.areaUV = polygonUVs[vertexId];
- //   output.sceneUV = (output.projectedPosition.xy / output.projectedPosition.w + 1.0f) * 0.5f;
-	
-
-    //float4 cameraPosition = mul(output.projectedPosition, gWorldMatrix);
-    //cameraPosition = mul(cameraPosition, gViewMatrix);
-    
-    //output.FogFactor = saturate((gFogEnd - gCameraPosition.z) / (gFogEnd - gFogStart));
-    
 	return output;
 }
